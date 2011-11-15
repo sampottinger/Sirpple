@@ -1,0 +1,29 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+	<head>
+		<title>Sirpple.GameObject.Create</title>
+        <style type='text/css'>
+            body {font-family: verdana}
+        </style>
+	</head>
+	<body>
+	    <h1>Sirpple.GameObject.Create Demo</h1>
+		<form id='create' action=''></form>
+		<div id='game_objects'></div>
+		<script type='text/javascript' 
+                src='../../../steal/steal.js'>
+        </script>
+		<script type='text/javascript'>
+			steal('sirpple/game_object/create','sirpple/fixtures',function(){
+				
+				$('#create').sirpple_game_object_create();
+				Sirpple.Models.GameObject.bind('created', function(ev, game_object){
+					$('<div>').html("<h3>"+game_object.name+"</h3><p>"+game_object.description+"</p>")
+					        .appendTo( $('#game_objects') )
+				})
+				
+			})
+		</script>
+	</body>
+</html>

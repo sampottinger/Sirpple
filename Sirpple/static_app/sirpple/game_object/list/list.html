@@ -1,0 +1,31 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN"
+            "http://www.w3.org/TR/html4/strict.dtd">
+<html lang="en">
+	<head>
+		<title>Sirpple.GameObject.List Demo</title>
+        <style type='text/css'>
+            body {font-family: verdana}
+        </style>
+	</head>
+	<body>
+	    <h1>Sirpple.GameObject.List Demo</h1>
+		<ul id='game_objects'></ul>
+		<a href='javascript://' id='create'>Create GameObject</a>
+		<script type='text/javascript' 
+                src='../../../steal/steal.js'>
+        </script>
+		<script type='text/javascript'>
+			steal('sirpple/game_object/list','sirpple/fixtures',function(){
+				
+				$('#game_objects').sirpple_game_object_list();
+				
+				$('#create').click(function(){
+					new Sirpple.Models.GameObject({
+						name: "Grilled Cheese",
+						description: "Bread and Cheese"
+					}).save();
+				})
+			})
+		</script>
+	</body>
+</html>
