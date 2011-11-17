@@ -1,38 +1,38 @@
 Attribute:
-	declaration:String
-	target:GameObject
+    declaration:String
+    target:GameObject
 
-GameObject:
-	name:String
-	parent:GameObject
-	project:Project
+GameObject: 
+    name:String
+    parent:GameObject
+    project:Project
 
 Entity:
 
 GameWorld:
-	
+    
 Component:
-	target:GameObject
-	component:GameObject
+    target:GameObject
+    component:GameObject
 
 Method:
-	signature:String
-	body:String
-	target:GameObject
-	
+    signature:String
+    body:String
+    target:GameObject
+    
 Subscription:
-	method:Method
-	event:Event
+    method:Method
+    event:Event
 
 Event:
-	name:String
-	
+    name:String
+    
 Project:
-	name:String
+    name:String
 
 Membership:
-	user:User
-	project:Project
+    user:User
+    project:Project
 
 User:
-	
+    
