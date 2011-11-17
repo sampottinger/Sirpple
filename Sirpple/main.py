@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 
 import webapp2
+import yamlmodels
+
+models = yamlmodels.load()
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):

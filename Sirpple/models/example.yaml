@@ -1,0 +1,14 @@
+# format is:
+# <model name>:
+#     <field 0>: <field 0 type>
+#     <field 1>: <field 1 type>
+#     ...
+#
+# available types are:
+# string
+#
+# multiple models may be specified per file
+
+Example:
+    field1: string
+    field2: string
