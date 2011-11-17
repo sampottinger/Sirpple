@@ -1,11 +1,17 @@
 """
 Module containing classes for serialzation between JSON and Python classes defined by configuration files
 """
-
+from glob import glob
+import pyyaml
+import os
+import logging
 from google.appengine.ext import db
 
 class ParserAdapter:
     """ Fully abstract parser interface """
+
+    def __init__(self):
+        pass
 
     def loads(self, source):
         """
@@ -22,7 +28,7 @@ class YamlAdapter(ParserAdapter):
     """ Adapts the pyyaml YAML parser to the generic parser """
 
     def __init__(self):
-        ParserWrapper.__init__(self)
+        ParserAdapter.__init__(self)
     
     def loads(self, source):
         """
@@ -53,30 +59,6 @@ class PropertyDefinitionFactory:
         
         return PropertyDefinitionFactory.__instance
     
-    def get_property(self, source):
-        """
-        Create a PropertyDefinition from the source dictionary
-
-        @param source: The dictionary to use to create this definition
-        @type source: Dictionary
-        @return: Newly created definition
-        @rtype: PropertyDefinition
-        """
-
-        # Ensure necessary key values 
-        if not "config_name" in source:
-            raise ValueError("Property definition did not contain a config_name")
-
-        if not "db_class_name" in source:
-            raise ValueError("Property definition did not contain a db_class_name")
-        
-        # Construct properties
-        config_name = source["config_name"]
-        db_class_name = source["db_class_name"]
-
-        # Create definition
-        return PropertyDefinition(config_name, db_class_name)
-    
     def get_properties(self, sources):
         """
         Create PropertyDefinitions from a list of source dictionaries
@@ -89,34 +71,57 @@ class PropertyDefinitionFactory:
         ret_dict = {}
 
         for source in sources:
-            definition = self.get_property(source)
-            ret_dict[definition.get_name()] = definition
+            definition = self.get_property(source, sources[source])
+            ret_dict[source] = definition
         
         return ret_dict
+    
+    def get_property(self, config_name, source):
+        """
+        Loads a property from the given dictionary or string representation of it
+
+        @param config_name: The name that this property is given in configuration files
+        @type config_name: String
+        @param source: Dictionary or String describing this property
+        @type source: Dictinonary or String
+        @return: The property extracted from the given dictionary
+        @rtype: PropertyDefinition
+        """
+        if isinstance(source, str):
+            db_class_name = source
+            parameters = {}
+        else:
+            db_class_name = source["db_type"]
+            parameters = source["parameters"]
+        
+        return PropertyDefinition(config_name, db_class_name, parameters)
 
 class PropertyDefinition:
     """ Definition of a property as part of a database model """
 
-    def __init__(self, config_name, db_class_name):
+    def __init__(self, config_name, db_class_name, parameters):
         """ 
         Conversion between a property type name in a configuration file and a property as defined by the underlying database
 
         @param config_name: The name of the property in the configuration file
         @type config_name: String
+        @param parameters: The parameters used to initalize this property
+        @type parameters: Dictionary
         @param db_class_name: The property class in the database
         @type db_class_name: Class
         """
         self.__config_name = config_name
         self.__db_class_name = db_class_name
+        self.__parameters = parameters
     
     def get_property(self):
         """
         Gets the db class this property defintion encloses
 
-        @return: Class for the property this definition encloses
-        @rtype: Class
+        @return: Instance of the property this definition encloses
+        @rtype: Python instance
         """
-        return getattr(db, self.__db_class_name)
+        return getattr(db, self.__db_class_name)(**self.__parameters)
 
 class FieldDefinitionFactory:
     """ 
@@ -138,32 +143,21 @@ class FieldDefinitionFactory:
         
         return FieldDefinitionFactory.__instance
     
-    def get_field(self, source):
+    def get_field(self, name, source):
         """
         Converts the dictionary in source to a field definition
 
-        @param source: The dictionary to convert from
-        @type source: Dictionary
+        @param name: The name of this new field
+        @type name: String
+        @param source: The dictionary or String to convert from
+        @type source: Dictionary or String
         @return: Instantiated field definition
         @rtype: FieldDefinition
         """
 
-        # Make sure expected properties are present
-        if not "name" in source:
-            raise ValueError("Expected name in field definition but not found")
+        field_type = source
 
-        if not "field_type" in source:
-            raise ValueError("Expected field_type in field definition but not found")
-
-        if not "parameters" in source:
-            raise ValueError("Expected parameters in field definition but not found")
-        
-        # Construct parameters
-        name = source["name"]
-        field_type = source["field_type"]
-        parameters = source["parameters"]
-
-        return FieldDefinition( name, field_type, parameters)
+        return FieldDefinition(name, field_type)
     
     def get_fields(self, sources):
         """
@@ -177,15 +171,16 @@ class FieldDefinitionFactory:
         ret_val = {}
 
         for source in sources:
-            new_field = self.get_field(source)
-            ret_val[new_field.get_name()] = new_field
+
+            new_field = self.get_field(source, sources[source])
+            ret_val[source] = new_field
         
         return ret_val
 
-class FieldDefintion:
+class FieldDefinition:
     """ Definition of a field as part of a database model """
 
-    def __init__(self, name, field_type, parameters):
+    def __init__(self, name, field_type):
         """
         Constructor for a Field
 
@@ -193,12 +188,9 @@ class FieldDefintion:
         @type name: String
         @param field_type: Description of this field's type as indicated in the configuration file
         @type field_type: String
-        @param parameters: The parameters used to initalize this field
-        @type parameters: Dictionary
         """
         self.__name = name
         self.__field_type = field_type
-        self.__parameters = parameters
     
     def get_name(self):
         """
@@ -217,8 +209,8 @@ class FieldDefintion:
         @rtype: Python native field
         """
         factory = ConfigModelFactory.get_instance()
-        field_class = factory.get_property_class(self.__field_type)
-        return field_class(**self.__parameters)
+        field = factory.get_property_class(self.__field_type)
+        return field
 
 class ClassDefinitionFactory:
     """ Factory that creates class definitions from dictionaries """
@@ -238,35 +230,32 @@ class ClassDefinitionFactory:
         
         return ClassDefinitionFactory.__instance
     
-    def get_class(self, source):
+    def get_class(self, full_name, source):
         """
         Creates a new definition from the provided source dictionary
 
+        @param full_name: The name (along with its parent class) of this new class
+        @type full_name: String
         @param source: The dictionary to load this class definition from
         @type source: Dictionary
         @return: New class definition
         @rtype: ClassDefinition
         """
-
-        # Make sure desired fields are availble
-        if not "name" in source:
-            raise ValueError("Expected name in this class definition but not found")
-
-        if not "fields" in source:
-            raise ValueError("Expected fields in this class definition but not found")
-
-        if not "parent_class" in source:
-            raise ValueError("Expected parent_class in this class definition but not found")
         
         # Construct fields
         field_factory = FieldDefinitionFactory.get_instance()
-        fields = field_factory.get_fields(source["fields"])
+        fields = field_factory.get_fields(source)
 
-        name = source["name"]
+        name_parts = full_name.split(".")
+        if len(name_parts) == 2:
+            parent_class_name = name_parts[0]
+            name = name_parts[1]
+        else:
+            name = name_parts[0]
+            parent_class_name = ConfigModelFactory.DEFAULT_PARENT_CLASS_DESCRIPTOR
         class_factory = ConfigModelFactory.get_instance()
-        parent_class = class_factory.get_class(source["parent_class"])
 
-        return ClassDefinition(name, fields, parent_class)
+        return ClassDefinition(name, fields, parent_class_name)
     
     def get_classes(self, sources):
         """
@@ -280,8 +269,8 @@ class ClassDefinitionFactory:
         ret_val = {}
 
         for source in sources:
-            definition = self.get_class(source)
-            ret_val[definition.get_name()] = definition
+            definition = self.get_class(source, sources[source])
+            ret_val[source] = definition
         
         return ret_val
 
@@ -338,7 +327,7 @@ class ClassDefinition:
 
         parent_class = class_factory.get_class(self.__parent_class_name)
 
-        return type(self.__name, (parentClass,), python_fields)
+        return type(self.__name, (parent_class,), python_fields)
 
 class ConfigModelFactoryMechanic:
     """
@@ -350,15 +339,15 @@ class ConfigModelFactoryMechanic:
     @classmethod
     def get_instance(self):
         """
-        Get a shared instance of this ConfigModelFactoryConstructor singleton
+        Get a shared instance of this ConfigModelFactoryMechanic singleton
 
-        @return: Shared ConfigModelFactoryConstructor instance
-        @rtype: ConfigModelFactoryConstructor
+        @return: Shared ConfigModelFactoryMechanic instance
+        @rtype: ConfigModelFactoryMechanic
         """
-        if ConfigModelFactoryConstructor.__instance == None:
-            ConfigModelFactoryConstructor.__instance = ConfigModelFactoryConstructor()
+        if ConfigModelFactoryMechanic.__instance == None:
+            ConfigModelFactoryMechanic.__instance = ConfigModelFactoryMechanic()
         
-        return ConfigModelFactoryConstructor.__instance
+        return ConfigModelFactoryMechanic.__instance
     
     def __init__(self):
         """
@@ -368,34 +357,104 @@ class ConfigModelFactoryMechanic:
         """
         self.__parsers = {"yaml" : YamlAdapter()}
     
-    def create_factory(self, language, class_definition_str, property_definition_str):
+    def __get_files_from_dir(self, directory, extension):
         """
-        Creates a new ConfigModelFactory from the provided configuration formatted strings
+        Generates a list of all the files in a folder ending in the given extension
+
+        @param directory: Path to the directory to look through
+        @type directory: String
+        @param extension: The extension to look for in file names (ie yaml). Do not include "dot" or "."
+        @type extension: String
+        """
+        glob_path = os.path.normpath(os.path.join(directory,'*.' + extension))
+        return glob(glob_path)
+    
+    def load_factory_from_config(self, language, guiding_configuration):
+        """
+        Loads a single configuration to drive the creation of a ConfigModelFactory
+
+        @param guiding_configuration: Encoded string with configuration containing other configuration files to use
+        @type guiding_configuration: String
+        @return: Modified shared instance of ConfigModelFactory
+        @rtype: ConfigModelFactory
+        """
+        parser = self.__parsers[language]
+
+        overall_configuration = parser.loads(guiding_configuration)
+
+        # Check for desired properties
+        if not "classes" in overall_configuration:
+            raise ValueError("No classes configuration specified")
+        if not "properties" in overall_configuration:
+            raise ValueError("No properties configuration specified")
+        
+        # Find directories
+        class_definition_dir = overall_configuration["classes"]
+        properties_definition_dir = overall_configuration["properties"]
+
+        # Load files
+        # WARNING: language name passed as file extension (yaml -> .yaml)
+        for filename in self.__get_files_from_dir(class_definition_dir, language):
+
+            with open(filename) as f:
+                self.configure_factory_classes(language, f.read())
+        
+        for filename in self.__get_files_from_dir(properties_definition_dir, language):
+
+            with open(filename) as f:
+                self.configure_factory_properties(language, f.read())
+
+        # Create factory
+        return ConfigModelFactory.get_instance()
+    
+    def configure_factory_classes(self, language, class_definition_str):
+        """
+        Configures ConfigModelFactory models from the provided configuration formatted strings
 
         @param language: The language the config files are written in
         @type language: String
         @param class_definition_str: The string containing information about class definitions
         @type class_definition_str: String
-        @param property_definition_str: The string containing information about class definitions
-        @type property_definition_str: String
+        @return: Modified shared instance of ConfigModelFactory
+        @rtype: ConfigModelFactory
         """
 
         parser = self.__parsers[language]
         class_definitions_raw = parser.loads(class_definition_str)
-        property_definitions_raw = parser.loads(property_definition_str)
-
+        
         # Convert dictionaries to class definitions and property definitions
         class_factory = ClassDefinitionFactory.get_instance()
         class_defintions = class_factory.get_classes(class_definitions_raw)
         
+        # Get the current factory 
+        factory = ConfigModelFactory.get_instance()
+        factory.add_class_definitions(class_defintions)
+
+        return factory
+    
+    def configure_factory_properties(self, language, property_definition_str):
+        """
+        Configures ConfigModelFactory type mapping from the provided configuration formatted strings
+
+        @param property_definition_str: The string containing information about class definitions
+        @type property_definition_str: String
+        @return: Modified shared instance of ConfigModelFactory
+        @rtype: ConfigModelFactory
+        """
+
+        parser = self.__parsers[language]
+        property_definitions_raw = parser.loads(property_definition_str)
+
+        # Convert dictionaries to class definitions and property definitions
         property_factory = PropertyDefinitionFactory.get_instance()
         property_definitions = property_factory.get_properties(property_definitions_raw)
 
         # Get the current factory 
         factory = ConfigModelFactory.get_instance()
-        factory.reset()
-        factory.add_class_definitions(class_defintions)
         factory.add_property_definitions(property_definitions)
+
+        return factory
+
 
 class ConfigModelFactory:
     """ Factory that produces model classes and instances from configuration specs """
@@ -408,15 +467,15 @@ class ConfigModelFactory:
     @classmethod
     def get_instance(self):
         """
-        Get a shared instance of this ConfigModelFactoryConstructor singleton
+        Get a shared instance of this ConfigModelFactory singleton
 
-        @return: Shared ConfigModelFactoryConstructor instance
-        @rtype: ConfigModelFactoryConstructor
+        @return: Shared ConfigModelFactory instance
+        @rtype: ConfigModelFactory
         """
-        if ConfigModelFactoryConstructor.__instance == None:
-            ConfigModelFactoryConstructor.__instance = ConfigModelFactoryConstructor()
+        if ConfigModelFactory.__instance == None:
+            ConfigModelFactory.__instance = ConfigModelFactory()
         
-        return ConfigModelFactoryConstructor.__instance
+        return ConfigModelFactory.__instance
     
     def __init__(self):
         """
@@ -434,10 +493,7 @@ class ConfigModelFactory:
         Resets this factory back to its original state before added classes
         """
 
-        self.__class_definitions = {
-            ConfigModelFactory.DEFAULT_PARENT_CLASS_DESCRIPTOR : 
-            ConfigModelFactory.DEFAULT_PARENT_CLASS
-        }
+        self.__class_definitions = {}
         self.__property_definitions = {}
 
     def add_class_definitions(self, class_definitions):
@@ -467,6 +523,10 @@ class ConfigModelFactory:
         @return: The requested model
         @rtype: ClassDefinition
         """
+        
+        if name == ConfigModelFactory.DEFAULT_PARENT_CLASS_DESCRIPTOR:
+            return ConfigModelFactory.DEFAULT_PARENT_CLASS
+        
         if not name in self.__class_definitions:
             raise ValueError(name + " has not been registered as model")
 
@@ -494,6 +554,8 @@ class ConfigModelFactory:
         @return: Property corresponding to the provided name
         @rtype: Class
         """
+        if not class_name in self.__property_definitions:
+            raise ValueError(class_name + " does not have a corresponding database property registered. Check your types yaml file.")
         return self.__property_definitions[class_name].get_property()
     
     def to_python(self, foreign_object, class_name):
