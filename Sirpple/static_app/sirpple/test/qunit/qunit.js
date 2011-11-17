@@ -1,1 +1,0 @@
-steal("funcunit/qunit", "./sirpple_test.js", './project_test.js', './game_object_test.js');

@@ -1,2 +1,0 @@
-steal("funcunit", 'sirpple/project/create/create_test.js', 'sirpple/project/list/list_test.js', 'sirpple/game_object/create/create_test.js', 'sirpple/game_object/list/list_test.js')
- .then("./sirpple_test.js");
