@@ -263,8 +263,8 @@ class ClassDefinitionFactory:
 
         @param sources: The sources to create the definitions from
         @type sources: List of dictionaries
-        @return: List of new class definitions
-        @rtype: List of ClassDefinition
+        @return: Dictionary of new class definitions
+        @rtype: Dictionary
         """
         ret_val = {}
 
