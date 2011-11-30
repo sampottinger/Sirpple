@@ -1,0 +1,3 @@
+[submodule "Sirpple/jslibs/limejs"]
+	path = Sirpple/jslibs/limejs
+	url = https://github.com/digitalfruit/limejs.git
