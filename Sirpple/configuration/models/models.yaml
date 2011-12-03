@@ -2,7 +2,7 @@ Attribute:
     declaration: String
     target: AttributeHolderGameObject
 
-GameObject: 
+GameObject:
     name: String
     parent_class: ParentGameObject
     project: ParentProject
@@ -13,8 +13,10 @@ Component:
     component: ComponentGameObject
 
 Method:
-    signature: String
-    body: String
+    name: String
+    signature: String #yaml string like "{x: int, y: int}"
+    body_type: String # enum-like type instead?
+    body: String      # format depends on type
     target: GameObject
 
 Subscription:
