@@ -1,0 +1,11 @@
+
+
+
+World and the Worlds it contains = Layers (Scene are created and managed by the "WorldManager")
+ScheduleManager (lime) -> fire custom step event as appropriate for the dt
+
+Event management -> if someone implements "on_[event_name]" then have them subscribe
+
+GameObject = Node
+
+- List of methods that come with subscriptions pulled from server
