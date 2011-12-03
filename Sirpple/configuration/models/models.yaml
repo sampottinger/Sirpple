@@ -15,7 +15,7 @@ Component:
 Method:
     signature: String
     body: String
-    target: MethodHandlerGameObject
+    target: GameObject
 
 Subscription:
     method: Method
@@ -26,7 +26,13 @@ Event:
 
 Project:
     name: String
+    starting_level: World
 
 Membership:
     user: User
     project: AccessibleProject
+
+World:
+    name: String
+    project: Project
+    constructor: Method
