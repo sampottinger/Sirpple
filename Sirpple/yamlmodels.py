@@ -34,21 +34,17 @@ def load(language = "yaml", location = 'app_config.yaml'):
     #                
     #                models[model_name] = type(model_name,(db.Model,),
     #                    class_fields)
-    #
-    ## add all our new models to the global scope
-    #globals().update(models)
-    #
-    #return models
 
     mechanic = serialization.ConfigModelFactoryMechanic.get_instance()
     
-    config_file = open(location)
-    configuration = config_file.read()
+    with open(location) as config_file:
+        configuration = config_file.read()
+    
     factory = mechanic.load_factory_from_config(language, configuration)
-    config_file.close()
     
     models = factory.get_classes()
     
+    # add all our new models to the global scope
     globals().update(models)
     
     return models

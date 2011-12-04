@@ -5,7 +5,11 @@ from glob import glob
 import pyyaml
 import os
 import logging
-from google.appengine.ext import db
+
+try:
+    from google.appengine.ext import db
+except ImportError:
+    db = None # dont fail for on-the-ground testing
 
 class ParserAdapter:
     """ Fully abstract parser interface """
