@@ -1,3 +1,13 @@
+# format is:
+# <model name>:
+#     <field 0>: <field 0 type>
+#     <field 1>: <field 1 type>
+#     ...
+#
+# available types are specified in ../types/*.yaml
+#
+# multiple models may be specified per file
+
 Attribute:
     declaration: String
     target: AttributeHolderGameObject
@@ -14,7 +24,7 @@ Component:
 
 Method:
     name: String
-    signature: String #yaml string like "{x: int, y: int}"
+    signature: String # yaml string like "{x: int, y: int}"
     body_type: String # enum-like type instead?
     body: String      # format depends on type
     target: GameObject
