@@ -2,48 +2,15 @@
 Module containing classes for serialzation between JSON and Python classes defined by configuration files
 """
 from glob import glob
-import pyyaml
+from configparser import get_parser
 import os
 import logging
+
 
 try:
     from google.appengine.ext import db
 except ImportError:
     db = None # dont fail for on-the-ground testing
-
-class ParserAdapter:
-    """ Fully abstract parser interface """
-
-    def __init__(self):
-        pass
-
-    def loads(self, source):
-        """
-        Loads the data saved in the provided string
-
-        @param source: The sourceing to load form
-        @type source: String
-        @return: Dictionary loaded from string
-        @rtype: Dictionary
-        """
-        raise NotImplementedError("Need to use subclass of this interface")
-
-class YamlAdapter(ParserAdapter):
-    """ Adapts the pyyaml YAML parser to the generic parser """
-
-    def __init__(self):
-        ParserAdapter.__init__(self)
-    
-    def loads(self, source):
-        """
-        Loads the data saved in the provided string
-
-        @param source: The string to load form
-        @type source: String
-        @return: Dictionary loaded from string
-        @rtype: Dictionary
-        """
-        return pyyaml.load(source)
 
 class PropertyDefinitionFactory:
     """ Factory that creates PropertyDefinition """
@@ -359,7 +326,7 @@ class ConfigModelFactoryMechanic:
 
         @note: This is a singleton and this should not be called externally
         """
-        self.__parsers = {"yaml" : YamlAdapter()}
+        pass
     
     def __get_files_from_dir(self, directory, extension):
         """
@@ -382,7 +349,7 @@ class ConfigModelFactoryMechanic:
         @return: Modified shared instance of ConfigModelFactory
         @rtype: ConfigModelFactory
         """
-        parser = self.__parsers[language]
+        parser = get_parser(language)
 
         overall_configuration = parser.loads(guiding_configuration)
 
@@ -423,7 +390,7 @@ class ConfigModelFactoryMechanic:
         @rtype: ConfigModelFactory
         """
 
-        parser = self.__parsers[language]
+        parser = get_parser(language)
         class_definitions_raw = parser.loads(class_definition_str)
         
         # Convert dictionaries to class definitions and property definitions
@@ -446,7 +413,7 @@ class ConfigModelFactoryMechanic:
         @rtype: ConfigModelFactory
         """
 
-        parser = self.__parsers[language]
+        parser = get_parser(language)
         property_definitions_raw = parser.loads(property_definition_str)
 
         # Convert dictionaries to class definitions and property definitions
