@@ -6,14 +6,45 @@ from configparser import get_parser
 import os
 import logging
 
-
 try:
     from google.appengine.ext import db
 except ImportError:
     db = None # dont fail for on-the-ground testing
 
+class PropertyDefinitionAbstractFactory:
+    """
+    Factory that produces the appropriate PropertyDefinitionFactory to the backend currently in use
+    """
+
+    __instance = None
+
+    @classmethod
+    def get_instance(self):
+        """
+        Get a shared instance of this PropertyDefinitionAbstractFactory singleton
+
+        @return: Shared PropertyDefinitionAbstractFactory instance
+        @rtype: PropertyDefinitionAbstractFactory
+        """
+        if PropertyDefinitionAbstractFactory.__instance == None:
+            PropertyDefinitionAbstractFactory.__instance = PropertyDefinitionAbstractFactory()
+        
+        return PropertyDefinitionAbstractFactory.__instance
+    
+    def __init__(self):
+        """ Constructor for the PropertyDefinitionAbstractFactory singleton that establishes supported backends """
+        self.__implementors = {"GAE": GAEPropertyDefinitionFactory}
+    
+    def get_factory(self, name):
+        """
+        Get the factory that goes along with the name of the backend in question
+        """
+        return self.__implementors[name].get_instance()
+
 class PropertyDefinitionFactory:
-    """ Factory that creates PropertyDefinition """
+    """ 
+    Fully abstract class (interface) for creating property definitions, subclassed by backend-specific construct
+    """
 
     __instance = None
 
@@ -25,10 +56,53 @@ class PropertyDefinitionFactory:
         @return: Shared PropertyDefinitionFactory instance
         @rtype: PropertyDefinitionFactory
         """
-        if PropertyDefinitionFactory.__instance == None:
-            PropertyDefinitionFactory.__instance = PropertyDefinitionFactory()
+        raise NotImplementedError("Need non-abstract implementor of this interface.")
+
+    def __init__(self):
+        pass
+
+    def get_properties(self, souces):
+        """
+        Create PropertyDefinitions from a list of source dictionaries
+
+        @param sources: Dictionaries used to create these definitions
+        @type sources: List of dictionaries
+        @return: Newly created definitions in dictionary mapping configuration name to definition
+        @rtype: Dictionary of PropertyDefinitions
+        """
+        raise NotImplementedError("Need to use non-abstract subclass")
+    
+    def get_property(self, config_name, source):
+        """
+        Loads a property from the given dictionary or string representation of it
+
+        @param config_name: The name that this property is given in configuration files
+        @type config_name: String
+        @param source: Dictionary or String describing this property
+        @type source: Dictinonary or String
+        @return: The property extracted from the given dictionary
+        @rtype: PropertyDefinition
+        """
+        raise NotImplementedError("Need to use non-abstract subclass")
+
+
+class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
+    """ Factory that creates PropertyDefinitions with GAE in mind """
+
+    __instance = None
+
+    @classmethod
+    def get_instance(self):
+        """
+        Get a shared instance of this GAEPropertyDefinitionFactory singleton
+
+        @return: Shared GAEPropertyDefinitionFactory instance
+        @rtype: GAEPropertyDefinitionFactory
+        """
+        if GAEPropertyDefinitionFactory.__instance == None:
+            GAEPropertyDefinitionFactory.__instance = GAEPropertyDefinitionFactory()
         
-        return PropertyDefinitionFactory.__instance
+        return GAEPropertyDefinitionFactory.__instance
     
     def get_properties(self, sources):
         """
@@ -76,10 +150,10 @@ class PropertyDefinition:
 
         @param config_name: The name of the property in the configuration file
         @type config_name: String
-        @param parameters: The parameters used to initalize this property
-        @type parameters: Dictionary
         @param db_class_name: The property class in the database
         @type db_class_name: Class
+        @param parameters: The parameters used to initalize this property
+        @type parameters: Dictionary
         """
         self.__config_name = config_name
         self.__db_class_name = db_class_name
@@ -414,10 +488,14 @@ class ConfigModelFactoryMechanic:
         """
 
         parser = get_parser(language)
-        property_definitions_raw = parser.loads(property_definition_str)
+        property_config_contents = parser.loads(property_definition_str)
+
+        # Figure out the backend is
+        backend = property_config_contents["Backend"]
+        property_definitions_raw = property_config_contents["Types"]
 
         # Convert dictionaries to class definitions and property definitions
-        property_factory = PropertyDefinitionFactory.get_instance()
+        property_factory = PropertyDefinitionAbstractFactory.get_instance().get_factory(backend)
         property_definitions = property_factory.get_properties(property_definitions_raw)
 
         # Get the current factory 

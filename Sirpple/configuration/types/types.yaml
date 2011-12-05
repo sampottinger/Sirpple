@@ -2,53 +2,14 @@ String: StringProperty
 
 GameObject: ReferenceProperty
 
-CompositeGameObject:
-    db_type: ReferenceProperty
-    parameters:
-        collection_name: "composite_game_object"
-
-AttributeHolderGameObject:
-    db_type: ReferenceProperty
-    parameters:
-        collection_name: "attribute_holder_game_object"
-
-ComponentGameObject:
-    db_type: ReferenceProperty
-    parameters:
-        collection_name: "component_game_object"
-
-MethodHandlerGameObject:
-    db_type: ReferenceProperty
-    parameters:
-        collection_name: "method_handler_game_object"
-
-ParentGameObject:
-    db_type: ReferenceProperty
-    parameters:
-        collection_name: "parent_game_object"
-
-ParentProject:
-    db_type: ReferenceProperty
-    parameters:
-        collection_name: "parent_project"
-
-AccessibleProject:
-    db_type: ReferenceProperty
-    parameters:
-        collection_name: "accessible_project"
-
 Integer: IntegerProperty
 
-Method:
-    db_type: ReferenceProperty
-    parameters:
-        collection_name: "methods"
+Method: ReferenceProperty
 
-Event:
-    db_type: ReferenceProperty
-    parameters:
-        collection_name: "events"
+Event: ReferenceProperty
 
 User: UserProperty
 
 Project: ReferenceProperty
+
+World: ReferenceProperty

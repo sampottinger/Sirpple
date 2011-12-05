@@ -10,17 +10,21 @@
 
 Attribute:
     declaration: String
-    target: AttributeHolderGameObject
+    target: GameObject
 
 GameObject:
     name: String
-    parent_class: ParentGameObject
-    project: ParentProject
+    parent_class: GameObject
+    project: Project
     type: Integer
 
 Component:
-    target: CompositeGameObject
-    component: ComponentGameObject
+    target: GameObject
+    component: GameObject
+
+Subscription:
+    target: Method
+    event: Event
 
 Method:
     name: String
@@ -28,10 +32,6 @@ Method:
     body_type: String # enum-like type instead?
     body: String      # format depends on type
     target: GameObject
-
-Subscription:
-    method: Method
-    event: Event
 
 Event:
     name: String
@@ -42,7 +42,7 @@ Project:
 
 Membership:
     user: User
-    project: AccessibleProject
+    project: Project
 
 World:
     name: String
