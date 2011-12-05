@@ -5,104 +5,25 @@ from glob import glob
 from configparser import get_parser
 import os
 import logging
+import backends
 
-try:
-    from google.appengine.ext import db
-except ImportError:
-    db = None # dont fail for on-the-ground testing
-
-class PropertyDefinitionAbstractFactory:
-    """
-    Factory that produces the appropriate PropertyDefinitionFactory to the backend currently in use
-    """
+class PropertyDefinitionLoader:
+    """ Factory that creates PropertyDefinition """
 
     __instance = None
 
     @classmethod
     def get_instance(self):
         """
-        Get a shared instance of this PropertyDefinitionAbstractFactory singleton
+        Get a shared instance of this PropertyDefinitionLoader singleton
 
-        @return: Shared PropertyDefinitionAbstractFactory instance
-        @rtype: PropertyDefinitionAbstractFactory
+        @return: Shared PropertyDefinitionLoader instance
+        @rtype: PropertyDefinitionLoader
         """
-        if PropertyDefinitionAbstractFactory.__instance == None:
-            PropertyDefinitionAbstractFactory.__instance = PropertyDefinitionAbstractFactory()
+        if PropertyDefinitionLoader.__instance == None:
+            PropertyDefinitionLoader.__instance = PropertyDefinitionLoader()
         
-        return PropertyDefinitionAbstractFactory.__instance
-    
-    def __init__(self):
-        """ Constructor for the PropertyDefinitionAbstractFactory singleton that establishes supported backends """
-        self.__implementors = {"GAE": GAEPropertyDefinitionFactory}
-    
-    def get_factory(self, name):
-        """
-        Get the factory that goes along with the name of the backend in question
-        """
-        return self.__implementors[name].get_instance()
-
-class PropertyDefinitionFactory:
-    """ 
-    Fully abstract class (interface) for creating property definitions, subclassed by backend-specific construct
-    """
-
-    __instance = None
-
-    @classmethod
-    def get_instance(self):
-        """
-        Get a shared instance of this PropertyDefinitionFactory singleton
-
-        @return: Shared PropertyDefinitionFactory instance
-        @rtype: PropertyDefinitionFactory
-        """
-        raise NotImplementedError("Need non-abstract implementor of this interface.")
-
-    def __init__(self):
-        pass
-
-    def get_properties(self, souces):
-        """
-        Create PropertyDefinitions from a list of source dictionaries
-
-        @param sources: Dictionaries used to create these definitions
-        @type sources: List of dictionaries
-        @return: Newly created definitions in dictionary mapping configuration name to definition
-        @rtype: Dictionary of PropertyDefinitions
-        """
-        raise NotImplementedError("Need to use non-abstract subclass")
-    
-    def get_property(self, config_name, source):
-        """
-        Loads a property from the given dictionary or string representation of it
-
-        @param config_name: The name that this property is given in configuration files
-        @type config_name: String
-        @param source: Dictionary or String describing this property
-        @type source: Dictinonary or String
-        @return: The property extracted from the given dictionary
-        @rtype: PropertyDefinition
-        """
-        raise NotImplementedError("Need to use non-abstract subclass")
-
-
-class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
-    """ Factory that creates PropertyDefinitions with GAE in mind """
-
-    __instance = None
-
-    @classmethod
-    def get_instance(self):
-        """
-        Get a shared instance of this GAEPropertyDefinitionFactory singleton
-
-        @return: Shared GAEPropertyDefinitionFactory instance
-        @rtype: GAEPropertyDefinitionFactory
-        """
-        if GAEPropertyDefinitionFactory.__instance == None:
-            GAEPropertyDefinitionFactory.__instance = GAEPropertyDefinitionFactory()
-        
-        return GAEPropertyDefinitionFactory.__instance
+        return PropertyDefinitionLoader.__instance
     
     def get_properties(self, sources):
         """
@@ -116,8 +37,7 @@ class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
         ret_dict = {}
 
         for source in sources:
-            definition = self.get_property(source, sources[source])
-            ret_dict[source] = definition
+            ret_dict[source] = self.get_property(source, sources[source])
         
         return ret_dict
     
@@ -130,7 +50,7 @@ class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
         @param source: Dictionary or String describing this property
         @type source: Dictinonary or String
         @return: The property extracted from the given dictionary
-        @rtype: PropertyDefinition
+        @rtype: PropertyDefinition or None if property should be ignored (built-in)
         """
         if isinstance(source, str):
             db_class_name = source
@@ -139,34 +59,8 @@ class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
             db_class_name = source["db_type"]
             parameters = source["parameters"]
         
-        return PropertyDefinition(config_name, db_class_name, parameters)
-
-class PropertyDefinition:
-    """ Definition of a property as part of a database model """
-
-    def __init__(self, config_name, db_class_name, parameters):
-        """ 
-        Conversion between a property type name in a configuration file and a property as defined by the underlying database
-
-        @param config_name: The name of the property in the configuration file
-        @type config_name: String
-        @param db_class_name: The property class in the database
-        @type db_class_name: Class
-        @param parameters: The parameters used to initalize this property
-        @type parameters: Dictionary
-        """
-        self.__config_name = config_name
-        self.__db_class_name = db_class_name
-        self.__parameters = parameters
-    
-    def get_property(self):
-        """
-        Gets the db class this property defintion encloses
-
-        @return: Instance of the property this definition encloses
-        @rtype: Python instance
-        """
-        return getattr(db, self.__db_class_name)(**self.__parameters)
+        factory = backends.DatabaseManager.get_instance().get_property_definition_factory()
+        return factory.get_definition(config_name, db_class_name, parameters)
 
 class FieldDefinitionFactory:
     """ 
@@ -204,19 +98,20 @@ class FieldDefinitionFactory:
 
         return FieldDefinition(name, field_type)
     
-    def get_fields(self, sources):
+    def get_fields(self, sources, inc_builtins=False):
         """
         Converts the list of dictionaries in sources to fields
 
         @param sources: List of dictionaries to convert from
         @type sources: List of Dictionary
+        @keyword inc_builtins: If True, reported builtins will be converted
+        @type inc_builtins: Boolean
         @return: Dictionary of instantiated fields
         @rtype: Dictionary from String to field
         """
         ret_val = {}
 
         for source in sources:
-
             new_field = self.get_field(source, sources[source])
             ret_val[source] = new_field
         
@@ -254,7 +149,7 @@ class FieldDefinition:
         @rtype: Python native field
         """
         factory = ConfigModelFactory.get_instance()
-        field = factory.get_property_class(self.__field_type)
+        field = factory.get_property_instance(self.__field_type, self.__name)
         return field
 
 class ClassDefinitionFactory:
@@ -488,14 +383,10 @@ class ConfigModelFactoryMechanic:
         """
 
         parser = get_parser(language)
-        property_config_contents = parser.loads(property_definition_str)
-
-        # Figure out the backend is
-        backend = property_config_contents["Backend"]
-        property_definitions_raw = property_config_contents["Types"]
+        property_definitions_raw = parser.loads(property_definition_str)
 
         # Convert dictionaries to class definitions and property definitions
-        property_factory = PropertyDefinitionAbstractFactory.get_instance().get_factory(backend)
+        property_factory = PropertyDefinitionLoader.get_instance()
         property_definitions = property_factory.get_properties(property_definitions_raw)
 
         # Get the current factory 
@@ -508,7 +399,7 @@ class ConfigModelFactoryMechanic:
 class ConfigModelFactory:
     """ Factory that produces model classes and instances from configuration specs """
 
-    DEFAULT_PARENT_CLASS = db.Model
+    DEFAULT_PARENT_CLASS = backends.DatabaseManager.get_instance().get_default_base_class()
     DEFAULT_PARENT_CLASS_DESCRIPTOR = "DefaultBase"
 
     __instance = None
@@ -594,18 +485,35 @@ class ConfigModelFactory:
         
         return ret_dict
     
-    def get_property_class(self, class_name):
+    def is_property_built_in(self, class_name, field_name):
         """
-        Get the class corresponding to the provided class name for a property
+        Determines if a property is built-in or if it needs to be added explicitly
 
         @param class_name: The name of the class to look up as defined in configuration
         @type class_name: String
+        @param field_name: The name of this field this property would be called (used by some backends)
+        @type field_name: String
+        @return: True if it is a built-in and False otherwise
+        @rtype: Boolean
+        """
+        if not class_name in self.__property_definitions:
+            raise ValueError(class_name + " does not have a corresponding database property registered. Check your types yaml file.")
+        return self.__property_definitions[class_name].is_built_int(field_name)
+    
+    def get_property_instance(self, class_name, field_name):
+        """
+        Get an instance of the class corresponding to the provided class name for a property
+
+        @param class_name: The name of the class to look up as defined in configuration
+        @type class_name: String
+        @param field_name: The name of this field this property will be called (used by some backends)
+        @type field_name: String
         @return: Property corresponding to the provided name
         @rtype: Class
         """
         if not class_name in self.__property_definitions:
             raise ValueError(class_name + " does not have a corresponding database property registered. Check your types yaml file.")
-        return self.__property_definitions[class_name].get_property()
+        return self.__property_definitions[class_name].get_property(field_name)
     
     def to_python(self, foreign_object, class_name):
         """

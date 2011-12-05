@@ -18,9 +18,9 @@ GameObject:
     parent: Project
     type: Integer
 
-Component:
-    parent: GameObject
-    component: GameObject
+Component: # Many to many field
+    parent: GameObject # Game object using this component
+    component: GameObject # The component in use
 
 Subscription:
     parent: Method
