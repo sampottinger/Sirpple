@@ -10,20 +10,20 @@
 
 Attribute:
     declaration: String
-    target: GameObject
+    parent: GameObject
 
 GameObject:
     name: String
     parent_class: GameObject
-    project: Project
+    parent: Project
     type: Integer
 
 Component:
-    target: GameObject
+    parent: GameObject
     component: GameObject
 
 Subscription:
-    target: Method
+    parent: Method
     event: Event
 
 Method:
@@ -31,10 +31,11 @@ Method:
     signature: String # yaml string like "{x: int, y: int}"
     body_type: String # enum-like type instead?
     body: String      # format depends on type
-    target: GameObject
+    parent: GameObject
 
 Event:
     name: String
+    parent: Project
 
 Project:
     name: String
@@ -42,9 +43,9 @@ Project:
 
 Membership:
     user: User
-    project: Project
+    parent: Project
 
 World:
     name: String
-    project: Project
+    parent: Project
     constructor: Method
