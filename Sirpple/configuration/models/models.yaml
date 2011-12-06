@@ -23,15 +23,25 @@ Component: # Many to many field
     component: GameObject # The component in use
 
 Subscription:
-    parent: Method
     event: Event
+
+Subscription.GameObjectSubscription:
+    parent: GameObjectMethod
+
+Subscription.WorldSubscription:
+    parent: WorldMethod
 
 Method:
     name: String
     signature: String # yaml string like "{x: int, y: int}"
     body_type: String # enum-like type instead?
     body: String      # format depends on type
+
+Method.GameObjectMethod:
     parent: GameObject
+
+Method.WordMethod:
+    parent: World
 
 Event:
     name: String
@@ -48,4 +58,4 @@ Membership:
 World:
     name: String
     parent: Project
-    constructor: Method
+    constructor: WorldMethod

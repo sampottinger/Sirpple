@@ -3,6 +3,7 @@ Classes for the management of model specifications and classes loaded from confi
 """
 
 import backends
+import model_spec
 
 class ConfigModelFactory:
     """ Factory that produces model classes and instances from configuration specs """
@@ -27,8 +28,8 @@ class ConfigModelFactory:
         Constructor for ConfigModelFactory that lazily loads class constants
         """
         self.reset()
-
-        ConfigModelFactory.DEFAULT_PARENT_CLASS = backends.DatabaseManager.get_instance().get_default_base_class()
+        default_class = backends.DatabaseManager.get_instance().get_default_base_class()
+        ConfigModelFactory.DEFAULT_PARENT_CLASS_DEFINTION = model_spec.WrappedClassDefinition(default_class, [])
     	ConfigModelFactory.DEFAULT_PARENT_CLASS_DESCRIPTOR = "DefaultBase"
     
     def reset(self):
@@ -68,7 +69,7 @@ class ConfigModelFactory:
         """
         
         if name == ConfigModelFactory.DEFAULT_PARENT_CLASS_DESCRIPTOR:
-            return ConfigModelFactory.DEFAULT_PARENT_CLASS
+            return ConfigModelFactory.DEFAULT_PARENT_CLASS_DEFINTION
         
         if not name in self.__class_definitions:
             raise ValueError(name + " has not been registered as model")

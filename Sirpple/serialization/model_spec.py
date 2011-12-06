@@ -116,10 +116,54 @@ class ClassDefinition:
             
             class_factory = config_model.ConfigModelFactory.get_instance()
 
-            parent_class = class_factory.get_class(self.__parent_class_name)
+            parent_class = class_factory.get_class(self.__parent_class_name).get_class()
 
             self.__class = type(self.__name, (parent_class,), python_fields)
         
+        return self.__class
+
+class WrappedClassDefinition(ClassDefinition):
+    """
+    Definition that wraps an already existing class
+    """
+
+    def __init__(self, inner_class, functions):
+        """
+        Create a new wrapper around the given class
+
+        @param inner_class: The actual Python class to wrap
+        @type inner_class: Python Class object
+        @param functions: List of function definitions to report
+        @type functions: List to FunctionDefintions
+        """
+        self.__class = inner_class
+        self.__fields = functions
+    
+    def get_name(self):
+        """
+        Determine which class this definition goes with
+
+        @return: The name of the class corresponding to this definition
+        @rtype: String
+        """
+        return self.__class.__name__
+    
+    def get_fields(self):
+        """
+        Returns all of the fields / properties this class definition currently has
+
+        @return: Dicationary of fields
+        @rtype: Dictionary from String to FieldDefition
+        """
+        return self.__fields
+    
+    def get_class(self):
+        """
+        Gets the Python version of this class
+
+        @return: The Python native copy of this loaded class
+        @rtype: Class which is a child of PARENT_CLASS
+        """
         return self.__class
 
 class PropertyDefinition:

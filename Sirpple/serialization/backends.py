@@ -113,7 +113,7 @@ class ChildrenResolver:
         """
         raise NotImplementedError("Must use implmentor of ChildrenResolver")
 
-class GAEChildrenResolver(ChildrenResovler):
+class GAEChildrenResolver(ChildrenResolver):
     """
     Google App Engine specific strategy for getting children from the database
     """

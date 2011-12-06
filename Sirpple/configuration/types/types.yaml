@@ -4,7 +4,9 @@ GameObject: ReferenceProperty
 
 Integer: IntegerProperty
 
-Method: ReferenceProperty
+GameObjectMethod: ReferenceProperty
+
+WorldMethod: ReferenceProperty
 
 Event: ReferenceProperty
 
