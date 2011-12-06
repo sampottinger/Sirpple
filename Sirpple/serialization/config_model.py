@@ -118,6 +118,19 @@ class ConfigModelFactory:
             raise ValueError(class_name + " does not have a corresponding database property registered. Check your types yaml file.")
         return self.__property_definitions[class_name].get_property(field_name)
     
+    def get_property_definition(self, class_name):
+    	"""
+    	Find the definition of type corresponding to the given property name
+
+    	@param class_name: The name of the class to look up as defined in configuration
+        @type class_name: String
+        @return: Property definitions corresponding to the provided name
+        @rtype: PropertyDefinition
+        """
+        if not class_name in self.__property_definitions:
+            raise ValueError(class_name + " does not have a corresponding database property registered. Check your types yaml file.")
+        return self.__property_definitions[class_name]
+    
     def to_python(self, foreign_object, class_name):
         """
         Converts the client provided foreign_object to a native Python model

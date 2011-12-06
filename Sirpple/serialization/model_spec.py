@@ -5,7 +5,11 @@ Classes containing structural information about models loaded from configuration
 import config_model
 
 class FieldDefinition:
-    """ Definition of a field as part of a database model """
+    """
+    Definition of a field as part of a database model
+    
+    @note: For the types in use in fields, see properties 
+    """
 
     def __init__(self, name, field_type):
         """
@@ -27,6 +31,25 @@ class FieldDefinition:
         @rtype: String
         """
         return self.__name
+    
+    def get_field_type_name(self):
+        """
+        Get the name of the type associated with this field
+
+        @return: Name of this field's type as indicated in the config file
+        @rtype: String
+        """
+        return self.__field_type
+    
+    def get_field_type(self):
+        """
+        Get the definition of this field's type
+
+        @return: Description of this field's type
+        @rtype: PropertyDefinition
+        """
+        factory = config_model.ConfigModelFactory.get_instance()
+        return factory.get_property_instance(self.__field_type)
     
     def get_field(self):
         """
@@ -56,6 +79,7 @@ class ClassDefinition:
         self.__fields = fields
         self.__name = name
         self.__parent_class_name = parent_class
+        self.__class = None
     
     def get_name(self):
         """
@@ -83,22 +107,27 @@ class ClassDefinition:
         @rtype: Class which is a child of PARENT_CLASS
         """
 
-        python_fields = {}
+        if self.__class == None:
 
-        for field_name in self.__fields:
-            python_fields[field_name] = self.__fields[field_name].get_field()
+            python_fields = {}
+
+            for field_name in self.__fields:
+                python_fields[field_name] = self.__fields[field_name].get_field()
+            
+            class_factory = config_model.ConfigModelFactory.get_instance()
+
+            parent_class = class_factory.get_class(self.__parent_class_name)
+
+            self.__class = type(self.__name, (parent_class,), python_fields)
         
-        class_factory = config_model.ConfigModelFactory.get_instance()
-
-        parent_class = class_factory.get_class(self.__parent_class_name)
-
-        return type(self.__name, (parent_class,), python_fields)
+        return self.__class
 
 class PropertyDefinition:
     """ 
-    Definition of a property as part of a database model 
+    Definition of a property *type* as part of a database model 
 
     @note: Abstract class, must use implementor
+    @note: For actual instance variables on a model, see fields
     """
 
     def __init__(self, config_name, db_class_name, parameters):
@@ -136,6 +165,15 @@ class PropertyDefinition:
         @rtype: Boolean
         """
         return True
+    
+    def is_reference(self):
+        """
+        Determines if this property is a primitive or not
+
+        @return: True if a reference property (non-primitive) and False otherwise
+        @rtype: Boolean
+        """
+        return False
     
     def get_property(self, field_name):
         """

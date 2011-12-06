@@ -69,6 +69,75 @@ class DatabaseManager:
         """
         # TODO: Switch on backend
         return adapted_models.GAEAdaptedModel
+    
+    def get_collection_field_names(self):
+        """
+        Gets the field that require collections in parsing
+
+        @return: List of field names that should become collections
+        @rtype: Tuple of field names
+        """
+        return ("parent",)
+    
+    def get_children_resolver(self):
+        """
+        Gets the db-specific resolver of children entities
+
+        @return: ChildrenResolver implementor for the current db
+        @rtyep: Instance of a subclass of ChildrenResovler
+        """
+        # TODO: Switch on backend
+        return GAEChildrenResolver.get_instance()
+
+class ChildrenResolver:
+    """
+    Interface for database specific classes that resolve children of models
+
+    Fully abstract class describing resolvers that find children of models
+    from the underlying database
+    """
+
+    def __init__(self):
+        pass
+    
+    def get_children(self, target_model, children_model_class):
+        """
+        Gets the children of the given target model that are of children_model_class
+
+        @param target_model: The model to look for children of
+        @type target_model: Any database model instance
+        @param children_model_class: The class to look for children in
+        @type childrem_model_class: DB model subclass
+        @return: The children entities
+        @rtype: Iterator over children_model_class instances
+        """
+        raise NotImplementedError("Must use implmentor of ChildrenResolver")
+
+class GAEChildrenResolver(ChildrenResovler):
+    """
+    Google App Engine specific strategy for getting children from the database
+    """
+
+    __instance = None
+
+    @classmethod
+    def get_instance(self):
+        """
+        Get a shared instance of this GAEChildrenResolver singleton
+
+        @return: Shared GAEChildrenResolver instance
+        @rtype: GAEChildrenResolver
+        """
+        if GAEChildrenResolver.__instance == None:
+            GAEChildrenResolver.__instance = GAEChildrenResolver()
+        
+        return GAEChildrenResolver.__instance
+
+    def __init__(self):
+        ChildrenResolver.__init__(self)
+    
+    def get_children(self, target_model, children_model_class):
+        return target_model.get_children(children_model_class)
 
 class PropertyDefinitionFactory:
     """
@@ -113,6 +182,9 @@ class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
 
     def __init__(self):
         PropertyDefinitionFactory.__init__(self)
+    
+    def is_reference(self):
+        return True
     
     def get_definition(self, config_name, db_class_name, parameters):
         if db_class_name == "ReferenceProperty":
