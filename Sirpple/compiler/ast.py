@@ -6,6 +6,13 @@ from serialization import model_graph
 class Node(object):
     def __init__(self, **kwargs):
         self.__dict__.update(kwargs)
+    
+    def __str__(self):
+        return repr(vars(self))
+    
+    def __repr__(self):
+        return str(self)
+    
 
 # Singleton might make sense here since graph is actually a bit intensive to load
 class NodeFactory:
