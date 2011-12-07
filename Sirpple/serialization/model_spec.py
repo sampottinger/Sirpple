@@ -49,7 +49,7 @@ class FieldDefinition:
         @rtype: PropertyDefinition
         """
         factory = config_model.ConfigModelFactory.get_instance()
-        return factory.get_property_instance(self.__field_type)
+        return factory.get_property_definition(self.__field_type)
     
     def get_field(self):
         """
