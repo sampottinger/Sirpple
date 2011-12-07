@@ -22,7 +22,6 @@ class FieldDefinition:
         @param exposed: Specifies if this field is available through the REST API
         @type exposed: Boolean
         """
-        print name
         self.__name = name
         self.__field_type = field_type
         self.__exposed = exposed
