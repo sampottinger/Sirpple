@@ -58,13 +58,13 @@ class ConfigModelFactory:
         """
         self.__property_definitions.update(property_definitions)
     
-    def get_class(self, name):
+    def get_class_definition(self, name):
         """
         Gets a registered model by name
 
-        @param name: The name of the model to lookup
+        @param name: The name of the class definition to lookup
         @type name: String
-        @return: The requested model
+        @return: The requested class definition
         @rtype: ClassDefinition
         """
         
@@ -76,7 +76,31 @@ class ConfigModelFactory:
 
         return self.__class_definitions[name]
     
-    def get_classes(self):
+    def get_class_definitions(self):
+        """
+        Determines all of the class definitions defined in this factory
+
+        @return: A dictionary of class definitions defined in this factory with the model names as keys
+        @rtype: Dictionary of String to ClassDefinitions
+        """
+        ret_dict = {}
+        ret_dict.update(self.__class_definitions)
+        
+        return ret_dict
+    
+    def get_model(self, name):
+        """
+        Gets a registered model by name
+
+        @param name: The name of the model to lookup
+        @type name: String
+        @return: The requested model
+        @rtype: Class
+        """
+        
+        return self.get_class_definition(name).get_class()
+    
+    def get_models(self):
         """
         Determines all of the model classes defined in this factory
 

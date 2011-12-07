@@ -17,7 +17,7 @@ def load(language = "yaml", location = 'app_config.yaml'):
     factory = mechanic.load_factory_from_config(language, configuration)
     
     # Get newly loaded classes
-    models = factory.get_classes()
+    models = factory.get_models()
     
     # add all our new models to the global scope
     globals().update(models)

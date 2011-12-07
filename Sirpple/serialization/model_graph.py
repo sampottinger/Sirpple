@@ -40,7 +40,7 @@ class ModelGraph:
 		@return: The definition corresponding to the class name specified
 		@rtype: ClassDefinition
 		"""
-		return self.__factory.get_class(class_name)
+		return self.__factory.get_class_definition(class_name)
 	
 	def get_children_classes(self, field_name, model_class):
 		"""

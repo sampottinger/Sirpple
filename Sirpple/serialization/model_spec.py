@@ -116,7 +116,7 @@ class ClassDefinition:
             
             class_factory = config_model.ConfigModelFactory.get_instance()
 
-            parent_class = class_factory.get_class(self.__parent_class_name).get_class()
+            parent_class = class_factory.get_model(self.__parent_class_name)
 
             self.__class = type(self.__name, (parent_class,), python_fields)
         
