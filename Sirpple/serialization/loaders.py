@@ -158,8 +158,6 @@ class ClassDefinitionFactory:
         if len(name_parts) == 2:
             parent_class_name = name_parts[0]
             name = name_parts[1]
-            print "x" + parent_class_name
-            print name
         else:
             name = name_parts[0]
             parent_class_name = config_model.ConfigModelFactory.get_instance().DEFAULT_PARENT_CLASS_DESCRIPTOR
