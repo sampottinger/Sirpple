@@ -2,7 +2,6 @@
 Set of classes to build an Abstract Syntax Tree for the game compiler 
 """
 from serialization import model_graph
-from serialization import backends
 
 class Node(object):
     def __init__(self, **kwargs):
@@ -23,16 +22,13 @@ class NodeFactory:
         @rtype: NodeFactory
         """
         if NodeFactory.__instance == None:
-            NodeFactory.__instance = ConfigModelFactory()
+            NodeFactory.__instance = NodeFactory()
         
         return NodeFactory.__instance
     
     def __init__(self):
 
         self.__graph = model_graph.ModelGraph.get_current_graph()
-
-        db_manager = backends.DatabaseManager.get_instance()
-        self.__collection_types = db_manager.get_collection_property_names()
     
     def get_collection_name(self, name):
         name = ''.join([c if c.islower() else '_'+c.lower() for c in name])
@@ -66,8 +62,10 @@ class NodeFactory:
 
         node_fields = {}
 
-        for field_defn in class_definition.get_fields().vals():
+        for field_defn in class_definition.get_fields().values():
             node_fields[field_defn.get_name()] = self.__create_tree_representation(target_model, field_defn)
+        
+        return Node(**node_fields)
     
     def __create_tree_representation(self, target_model, field_definition):
         """
@@ -82,12 +80,12 @@ class NodeFactory:
         @rtype: Node, Collection, or primitive
         """
 
-        field_type = field_defn.get_field_type()
+        field_type = field_definition.get_field_type()
 
         # Make node for pointer or collection
         if field_type.is_reference():
 
-            field_name = field_defn.get_name()
+            field_name = field_definition.get_name()
 
             # Check to see if it should become a collection
             if field_name in self.__collection_types:
@@ -102,4 +100,4 @@ class NodeFactory:
         
         # Get value for primitive
         else:   
-            return getattr(target_model, field_name)
+            return getattr(target_model, field_definition.get_name())
