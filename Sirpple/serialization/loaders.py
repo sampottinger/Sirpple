@@ -178,7 +178,7 @@ class ClassDefinitionFactory:
 
         for source in sources:
             definition = self.get_class(source, sources[source])
-            ret_val[source] = definition
+            ret_val[definition.get_name()] = definition
         
         return ret_val
 

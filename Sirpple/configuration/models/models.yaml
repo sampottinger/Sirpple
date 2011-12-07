@@ -40,7 +40,7 @@ Method:
 Method.GameObjectMethod:
     parent: GameObject
 
-Method.WordMethod:
+Method.WorldMethod:
     parent: World
 
 Event:
