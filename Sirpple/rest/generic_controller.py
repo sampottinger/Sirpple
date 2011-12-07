@@ -32,7 +32,7 @@ class SomethingHandler(webapp2.RequestHandler):
         self.response.out.write(serializer.dumps(result))
 
     def __do_get(self):
-
+        
         self.set_status(BaseHandler.OK)
 
     def __do_post(self):

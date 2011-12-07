@@ -99,7 +99,14 @@ class FieldDefinitionFactory:
 
         field_type = source
 
-        return model_spec.FieldDefinition(name, field_type)
+        # Determine if exposed
+        if name.startswith("."):
+            exposed = False
+        else:
+            exposed = True
+            name = name[1:]
+
+        return model_spec.FieldDefinition(name, field_type, exposed)
     
     def get_fields(self, sources, inc_builtins=False):
         """
