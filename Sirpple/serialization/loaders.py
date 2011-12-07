@@ -101,10 +101,10 @@ class FieldDefinitionFactory:
 
         # Determine if exposed
         if name.startswith("."):
-            exposed = False
-        else:
             exposed = True
             name = name[1:]
+        else:
+            exposed = False
 
         return model_spec.FieldDefinition(name, field_type, exposed)
     
