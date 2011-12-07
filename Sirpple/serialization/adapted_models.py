@@ -10,25 +10,25 @@ except ImportError:
 # TODO: Fully unified interface for adaptable models . . . see backends.DatabaseManager
 
 class GAEAdaptedModel(db.Model):
-	"""
-	Model that fills in database-specific gaps in GAE implementation
-	"""
+    """
+    Model that fills in database-specific gaps in GAE implementation
+    """
 
-	def get_children(self, child_class, **kwargs):
-		""" 
-		Get all of the children of this model
+    def get_children(self, child_class, **kwargs):
+        """ 
+        Get all of the children of this model
 
-		@param 
-		@return: Iterator over this model's children
-		@rtype: Iterator
-		"""
+        @param 
+        @return: Iterator over this model's children
+        @rtype: Iterator
+        """
 
-		query = Query(child_class)
-		query.ancestor(self)
+        query = Query(child_class)
+        query.ancestor(self)
 
-		for arg in kwargs.items():
-			query.filter(arg(0) + " =", arg(1))
+        for arg in kwargs.items():
+            query.filter(arg(0) + " =", arg(1))
 
-		# TODO: Ensure only immediate children
+        # TODO: Ensure only immediate children
 
-		return query
+        return query
