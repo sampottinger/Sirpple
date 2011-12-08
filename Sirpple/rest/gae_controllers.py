@@ -5,7 +5,7 @@ from google.appengine.ext.db import Query
 from ..serialization import config_model
 from ..serialization import backends
 
-class SomethingHandler(webapp2.RequestHandler):
+class GAEController(webapp2.RequestHandler):
 
     DEFAULT_SERIALIZER = "complex-JSON"
     PROJECT_MODEL_NAME = "Project"
@@ -20,12 +20,12 @@ class SomethingHandler(webapp2.RequestHandler):
         self.__target_class = target_class
         self.__target_class_name = target_class.__name__
         self.__target_class_defn = model_factory.get_class(self.__target_class_name)
-        self.__project_model = model_factory.get_class(SomethingHandler.PROJECT_MODEL_NAME)
+        self.__project_model = model_factory.get_class(GAEController.PROJECT_MODEL_NAME)
         self.__uac_checker = backends.DatabaseManager.get_instance().get_uac_checker()
 
     def get(self):
         result = self.__do_get(self)
-        serializer = SerializerFactory.get_serializer(SomethingHandler.DEFAULT_SERIALIZER)
+        serializer = SerializerFactory.get_serializer(GAEController.DEFAULT_SERIALIZER)
         self.response.out.write(serializer.dumps(result))
 
     def post(self):
@@ -57,14 +57,11 @@ class SomethingHandler(webapp2.RequestHandler):
         # TODO: Limit query by __limit__ argument
 
         # Try to determine the project_id
-        if not "project_id" in arguments:
-            self.error(BaseHandler.METHOD_NOT_ALLOWED)
-            logging.debug("Request reject b/c missing project_id")
-            project = self.__project_model.get_by_id(SomethingHandler.PROJECT_ID_PARAM)
+        project = self.__get_project()
 
         # See if we can short-cut by looking up using an ID
-        if "id" in arguments:
-            instances = [self.__target_class.get_by_id(int(self.get(SomethingHandler.INSTANCE_ID_PARAM)))]
+        if GAEController.INSTANCE_ID_PARAM in arguments:
+            instances = [self.__target_class.get_by_id(int(self.get(GAEController.INSTANCE_ID_PARAM)))]
 
         # If not, build a query from the given parameters
         else:
@@ -82,11 +79,22 @@ class SomethingHandler(webapp2.RequestHandler):
             instances = list(query)
         
         # Write out response for 
-        user = users.get_current_user()
-        check_security = lambda x: self.__uac_checker.is_authorized(x, user)
+        check_security = lambda x: self.__is_authorized(x)
         self.__write_seralized_response(filter(check_security, instances))
 
         self.set_status(BaseHandler.OK)
+
+    def __is_authorized(self, target):
+        """ Checks to see if the current user can operate on target """
+        user = users.get_current_user()
+        return self.__uac_checker.is_authorized(x, user)
+    
+    def __get_project(self):
+        """ Get the project referenced by this REST API call """
+        if not GAEController.PROJECT_ID_PARAM in self.arguments():
+            self.error(BaseHandler.METHOD_NOT_ALLOWED)
+            logging.debug("Request reject b/c missing project_id")
+        return self.__project_model.get_by_id(GAEController.PROJECT_ID_PARAM)
 
     def __do_post(self):
         pass
