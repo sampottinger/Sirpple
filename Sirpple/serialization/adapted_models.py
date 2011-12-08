@@ -4,8 +4,11 @@ Adaptable model that fills in the gaps for the backend in use
 
 try:
     from google.appengine.ext import db
+    from google.appengine.ext.db import Query
 except ImportError:
-    db = None # dont fail for on-the-ground testing
+    # dont fail for on-the-ground testing
+    db = None
+    Query = None
 
 # TODO: Fully unified interface for adaptable models . . . see backends.DatabaseManager
 
