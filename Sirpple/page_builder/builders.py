@@ -13,7 +13,7 @@ class PageBuilder:
     rendering library. Also supports caching the results.
     """
 
-    def __init__(self, target, templates_dir, tag="{* %s *}"):
+    def __init__(self, target, templates_dir, tag=""):
         """
         Create a new page builder to operate on the given target page
 
@@ -21,9 +21,9 @@ class PageBuilder:
         @type target: String
         @param templates_dir: The local directory where templates are stored
         @type templates_dir: String
-        @keyword tag: The tag to look for that indicates another template
-                      should be loaded in its place. Defaults to {* %s *}
-        @type tag: String
+        @param tag: The tag to look for that indicates another template
+                      should be loaded in its place.
+        @param tag: String
         """
         self.__templates_dir = templates_dir
         self.__tag = tag
