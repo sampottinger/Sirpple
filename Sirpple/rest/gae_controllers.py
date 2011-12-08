@@ -11,6 +11,7 @@ class GAEController(webapp2.RequestHandler):
     PROJECT_MODEL_NAME = "Project"
     PROJECT_ID_PARAM = "project_id"
     INSTANCE_ID_PARAM = "id"
+    PARENT_PARAM = "parent"
 
     def __init__(self, target_class, *args, **kwargs):
         webapp2.RequestHandler.__init__(self, *args, **kwargs)    
@@ -126,7 +127,7 @@ class GAEController(webapp2.RequestHandler):
 
             if field_name in arguments:
                 new_val_raw = self.get(field_name)
-                new_val = self.__interpret_foreign_value(new_val_raw)
+                new_val = self.__interpret_foreign_value(field_name, new_val_raw)
                 setattr(instance, field_name, new_val)
         
         # Save back
@@ -137,10 +138,53 @@ class GAEController(webapp2.RequestHandler):
         self.set_status(BaseHandler.UPDATED)
 
     def __do_put(self):
-        pass
+
+        fields = self.__target_class_defn.get_fields()
+        field_vals = {}
+
+        arguments = self.arguments()
+
+        # Determine parent
+        if not GAEController.PARENT_PARAM:
+            self.error(BaseHandler.METHOD_NOT_ALLOWED)
+            return
+
+        parent_id = self.get(GAEController.PARENT_PARAM)
+        parent = self.__interpret_foreign_value(GAEController.PARENT_PARAM, parent_id)
+
+        # Make changes
+        for field_name in filter(lambda x: x.is_exposed(), fields.keys()):
+
+            if field_name in arguments:
+                new_val_raw = self.get(field_name)
+                new_val = self.__interpret_foreign_value(field_name, new_val_raw)
+                field_vals[field_name] = new_val
+        
+        instance = self.__target_class(parent=parent, **field_vals)
+        self.set_status(BaseHandler.CREATED)
+        self.__write_serialized_response(instance)
 
     def __do_delete(self):
-        pass
+        
+        # Get the instance
+        instance = self.__get_instance_by_id()
+        if instance == None:
+            self.error(BaseHandler.METHOD_NOT_ALLOWED)
+            return
+        
+        # Check authorization
+        if not self.__is_authorized(instance):
+            self.error(BaseHandler.FORBIDDEN)
+            return
+        
+        # Write out soon to be deleted contents
+        self.__write_serialized_response(instance)
+
+        # Delete
+        instance.delete()
+
+        # Confirm
+        self.set_status(BaseHandler.DELETED)
     
     def __write_serialized_response(self, target):
         pass
