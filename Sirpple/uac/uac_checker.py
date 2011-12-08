@@ -45,4 +45,4 @@ class GAEUACChecker(UACChecker):
     
     def is_authorized(self, target, user):
         return True # TODO: After authentication, this ought to be filled in
-        
+        # NOTE: user or target might be null
