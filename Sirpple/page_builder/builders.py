@@ -13,6 +13,8 @@ class PageBuilder:
     rendering library. Also supports caching the results.
     """
 
+    DEBUG = True
+
     def __init__(self, target, templates_dir, tag):
         """
         Create a new page builder to operate on the given target page
@@ -42,9 +44,9 @@ class PageBuilder:
         @return: The original template file contents with sub-templates loaded
         @rtype: String
         """
-        if self.__cache == None:
-            for match in self.__tag_regex.findall(self.__target_contents):
-                self.__target_contents = self.__replace_tag(self.__target_contents, match.group(0))
+        if self.__cache == None or PageBuilder.DEBUG:
+            for match in self.__tag_regex.finditer(self.__target_contents):
+                self.__target_contents = self.__replace_tag(self.__target_contents, match.group(1))
             
             self.__cache = self.__target_contents
         
