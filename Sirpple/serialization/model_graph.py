@@ -80,15 +80,15 @@ class ModelGraph:
         @param field_name: The name of the field to look for the parent-child 
                            relationship
         @type field_name: String
-        @return: List of immediate children of target_model
-        @rtype: List of Model instances
+        @return: Dictionary of immediate children of target_model by type
+        @rtype: Dictionary of ClassDefinitions to Model instances
         """
         resolver = backends.DatabaseManager.get_instance().get_children_resolver()
         
-        children = []
-        for class_defn in self.get_children_classes(target_model, field_name):
-            new_children = list(resolver.get_children(target_model, class_defn))
-            children.extend(new_children)
+        children = {}
+        for class_defn in self.get_children_classes(field_name, target_model.__class__):
+            new_children = list(resolver.get_children(target_model, class_defn.get_class()))
+            children[class_defn] = new_children
 
         return children
     
@@ -105,7 +105,7 @@ class ModelGraph:
         relationships = {}
 
         # Go through all of the available classes
-        for class_def in self.__factory.get_classes():
+        for class_def in self.__factory.get_class_definitions().values():
 
             # Get all of the fields for this class
             field_defs = class_def.get_fields()
@@ -113,13 +113,13 @@ class ModelGraph:
             # If this field is in this class, add its type to the set
             if field_name in field_defs:
 
-                type_name = field_defs.get_field_type_name()
+                type_name = field_defs[field_name].get_field_type_name()
 
                 # Set up a set in the dictionary if not already there
                 if not type_name in relationships:
                     relationships[type_name] = set([])
                 
                 # Add ourselves
-                relationships[type_name].add(class_def.get_name())
+                relationships[type_name].add(class_def)
             
         self.__field_relationship_cache[field_name] = relationships
