@@ -2,6 +2,7 @@
 Module that abstracts away the backend database / framework
 """
 
+from ..uac import uac_checker
 import adapted_models
 import model_spec
 
@@ -9,6 +10,8 @@ try:
     from google.appengine.ext import db
 except ImportError:
     db = None # dont fail for on-the-ground testing
+
+# TODO: This is probably going to need to get pushed into another module
 
 # TODO: Push this out to a config file, scoping is important
 BACKEND = "GAE"
@@ -88,6 +91,16 @@ class DatabaseManager:
         """
         # TODO: Switch on backend
         return GAEChildrenResolver.get_instance()
+    
+    def get_uac_checker(self):
+        """
+        Gets the db-specific construct for checking user access controls
+
+        @return: DB-speific rights management construct
+        @rtype: Implementor of UACChecker
+        """
+        # TODO: Switch on backend
+        return uac_checker.GAEUACChecker.get_instance()
 
 class ChildrenResolver:
     """
