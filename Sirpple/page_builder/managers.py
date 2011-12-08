@@ -44,6 +44,6 @@ class PageManager:
         @rtype: String
         """
         if not filename in self.__builders:
-            self.__builders[filename] = builders.PageBuilder(filename, self.__templates_dir)
+            self.__builders[filename] = builders.PageBuilder(filename, self.__templates_dir, self.__tag)
         
         return self.__builders[filename].render()

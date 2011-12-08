@@ -19,7 +19,7 @@ class AppHandler(webapp2.RequestHandler):
         self.response.out.write(composite_template_manager.render(AppHandler.APP_TEMPLATE))
 
 app = webapp2.WSGIApplication([('/', MainHandler),
-                                '/app', AppHandler], debug=True
+                                ('/app', AppHandler)], debug=True)
 
 
 if __name__ == '__main__':

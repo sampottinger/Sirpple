@@ -13,7 +13,7 @@ class PageBuilder:
     rendering library. Also supports caching the results.
     """
 
-    def __init__(self, target, templates_dir, tag=""):
+    def __init__(self, target, templates_dir, tag):
         """
         Create a new page builder to operate on the given target page
 
@@ -25,9 +25,11 @@ class PageBuilder:
                       should be loaded in its place.
         @param tag: String
         """
+        self.__tag_replace_regex = re.compile("(?<=.)")
         self.__templates_dir = templates_dir
         self.__tag = tag
-        self.__tag_regex = re.compile(self.__tag % "(?<=[\w\.\/]+)")
+        reg_ready_tag = self.__generate_reg_ready_tag(self.__tag)
+        self.__tag_regex = re.compile(reg_ready_tag % "([\w\.\/]+)")
         self.__cache = None
 
         with open(self.__get_file_loc(target)) as f:
@@ -77,3 +79,23 @@ class PageBuilder:
         @rtype: String
         """
         return os.path.join(self.__templates_dir, target)
+    
+    def __generate_reg_ready_tag(self, target):
+        """
+        Converts the given tag to one ready to be made into a regex
+        """
+        tag_reg_compatible_parts = target.split(" %s ")
+
+        for i in range(0, len(tag_reg_compatible_parts)):
+            orig_part = tag_reg_compatible_parts[i]
+            new_part = self.__generate_reg_ready_tag_part(orig_part)
+            tag_reg_compatible_parts[i] = new_part
+        
+        return " %s ".join(tag_reg_compatible_parts)
+    
+    def __generate_reg_ready_tag_part(self, target):
+        """
+        Converts one side of the given tag string to a string ready to be made into a regex
+        """
+        target_letters = list(target)
+        return "\\" + "\\".join(target_letters)
