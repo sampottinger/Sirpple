@@ -11,7 +11,7 @@ class FieldDefinition:
     @note: For the types in use in fields, see properties 
     """
 
-    def __init__(self, name, field_type):
+    def __init__(self, name, field_type, exposed):
         """
         Constructor for a Field
 
@@ -19,9 +19,12 @@ class FieldDefinition:
         @type name: String
         @param field_type: Description of this field's type as indicated in the configuration file
         @type field_type: String
+        @param exposed: Specifies if this field is available through the REST API
+        @type exposed: Boolean
         """
         self.__name = name
         self.__field_type = field_type
+        self.__exposed = exposed
     
     def get_name(self):
         """
@@ -61,6 +64,15 @@ class FieldDefinition:
         factory = config_model.ConfigModelFactory.get_instance()
         field = factory.get_property_instance(self.__field_type, self.__name)
         return field
+    
+    def is_exposed(self):
+        """
+        Determine if this field is exposed through the REST API
+
+        @return: True if this field is exposed through REST and False otherwise
+        @rtype: Boolean
+        """
+        return self.__exposed
 
 class ClassDefinition:
     """ Definition of a model loaded through a configuration secification """

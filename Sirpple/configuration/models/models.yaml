@@ -15,7 +15,7 @@ Attribute:
 GameObject:
     name: String
     parent_class: GameObject
-    parent: Project
+    .parent: Project
     type: Integer
 
 Component: # Many to many field
@@ -45,7 +45,7 @@ Method.WorldMethod:
 
 Event:
     name: String
-    parent: Project
+    .parent: Project
 
 Project:
     name: String
@@ -53,9 +53,9 @@ Project:
 
 Membership:
     user: User
-    parent: Project
+    .parent: Project
 
 World:
     name: String
-    parent: Project
+    .parent: Project
     constructor: WorldMethod
