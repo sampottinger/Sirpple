@@ -61,7 +61,11 @@ class GAEController(webapp2.RequestHandler):
 
         # See if we can short-cut by looking up using an ID
         if GAEController.INSTANCE_ID_PARAM in arguments:
-            instances = [self.__target_class.get_by_id(int(self.get(GAEController.INSTANCE_ID_PARAM)))]
+            instance = self.__get_instance_by_id()
+            if instance == None:
+                self.error(BaseHandler.METHOD_NOT_ALLOWED)
+                return
+            instances = [instance]
 
         # If not, build a query from the given parameters
         else:
@@ -95,9 +99,42 @@ class GAEController(webapp2.RequestHandler):
             self.error(BaseHandler.METHOD_NOT_ALLOWED)
             logging.debug("Request reject b/c missing project_id")
         return self.__project_model.get_by_id(GAEController.PROJECT_ID_PARAM)
+    
+    def __get_instance_by_id(self):
+        if GAEController.INSTANCE_ID_PARAM in self.arguments():
+            return self.__target_class.get_by_id(int(self.get(GAEController.INSTANCE_ID_PARAM)))
+        else:
+            return None
 
     def __do_post(self):
-        pass
+
+        # Get the instance
+        instance = self.__get_instance_by_id()
+        if instance == None:
+            self.error(BaseHandler.METHOD_NOT_ALLOWED)
+            return
+        
+        # Check authorization
+        if not self.__is_authorized(instance):
+            self.error(BaseHandler.FORBIDDEN)
+            return
+
+        fields = self.__target_class_defn.get_fields()
+
+        # Make changes
+        for field_name in filter(lambda x: x.is_exposed(), fields.keys()):
+
+            if field_name in arguments:
+                new_val_raw = self.get(field_name)
+                new_val = self.__interpret_foreign_value(new_val_raw)
+                setattr(instance, field_name, new_val)
+        
+        # Save back
+        instance.put()
+
+        # Report on success
+        self.__write_seralized_response(instance)
+        self.set_status(BaseHandler.UPDATED)
 
     def __do_put(self):
         pass
@@ -105,5 +142,5 @@ class GAEController(webapp2.RequestHandler):
     def __do_delete(self):
         pass
     
-    def __write_serialized_response(self):
+    def __write_serialized_response(self, target):
         pass
