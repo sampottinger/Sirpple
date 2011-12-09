@@ -15,3 +15,5 @@ User: UserProperty
 Project: ReferenceProperty
 
 World: ReferenceProperty
+
+Text: TextProperty
