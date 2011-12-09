@@ -163,6 +163,17 @@ class SimplePropertyDefinition(model_spec.PropertyDefinition):
     def get_property(self, field_name):
         return DatabaseManager.get_instance().get_property_class(self.db_class_name, self.parameters)
 
+class EmptyReferenePropertyDefinition(model_spec.PropertyDefinition):
+    """
+    Reference property definitions that should not actually be properties (built-ins)
+    """
+
+    def get_property(self, field_name):
+        return None
+    
+    def is_built_in(self, field_name):
+        return True
+
 class GAEReferencePropertyDefinition(model_spec.PropertyDefinition):
     """
     Reference property definitions that require a collection name
@@ -185,15 +196,4 @@ class GAEParentPropertyDefinition(GAEReferencePropertyDefinition):
     """
 
     def is_built_in(self):
-        return True
-
-class EmptyReferenePropertyDefinition(model_spec.PropertyDefinition):
-    """
-    Reference property definitions that should not actually be properties (built-ins)
-    """
-
-    def get_property(self, field_name):
-        return None
-    
-    def is_built_in(self, field_name):
         return True

@@ -170,7 +170,10 @@ class ClassDefinitionFactory:
             parent_class_name = config_model.ConfigModelFactory.get_instance().DEFAULT_PARENT_CLASS_DESCRIPTOR
         class_factory = config_model.ConfigModelFactory.get_instance()
 
-        return model_spec.ClassDefinition(name, fields, parent_class_name)
+        # Get parent field definition
+        parent_field = fields[model_spec.ClassDefinition.DEFAULT_PARENT_FIELD]
+
+        return model_spec.ClassDefinition(name, fields, parent_class_name, parent_field)
     
     def get_classes(self, sources):
         """

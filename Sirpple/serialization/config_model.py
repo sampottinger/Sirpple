@@ -29,7 +29,7 @@ class ConfigModelFactory:
         """
         self.reset()
         default_class = backends.DatabaseManager.get_instance().get_default_base_class()
-        ConfigModelFactory.DEFAULT_PARENT_CLASS_DEFINTION = model_spec.WrappedClassDefinition(default_class, [], "parent") # TODO: Parent field name?
+        ConfigModelFactory.DEFAULT_PARENT_CLASS_DEFINTION = model_spec.WrappedClassDefinition(default_class, [], None) # TODO: Parent field name?
     	ConfigModelFactory.DEFAULT_PARENT_CLASS_DESCRIPTOR = "DefaultBase"
     
     def reset(self):

@@ -57,21 +57,30 @@ class ModelGraph:
         @rtype: List of ClassDefinitions
         """
         model_class_name = model_class.__name__
-
-        field_name = model_class.get_parent_field_name()
-
-        # Check cache for existing relationship
-        if not field_name in self.__field_relationship_cache:
-            self.__load_field_relationships(field_name)
         
-        # Get existing relationships
-        relationships = self.__field_relationship_cache[field_name]
+        model_class_def = self.__factory.get_class_definition(model_class_name)
+        
+        field = model_class_def.get_parent_field()
 
-        # Return children
-        if not model_class_name in relationships:
-            return []
+        if not field == None:
+
+            field_name = field.get_name()
+
+            # Check cache for existing relationship
+            if not field_name in self.__field_relationship_cache:
+                self.__load_field_relationships(field_name)
+            
+            # Get existing relationships
+            relationships = self.__field_relationship_cache[field_name]
+
+            # Return children
+            if not model_class_name in relationships:
+                return []
+            else:
+                return relationships[model_class_name]
+        
         else:
-            return relationships[model_class_name]
+            return []
     
     def get_children(self, target_model):
         """
@@ -83,9 +92,6 @@ class ModelGraph:
         @rtype: Dictionary of ClassDefinitions to list of Model instances
         """
         
-        # Get the parent field name
-        field_name = target_model.get_parent_field_name()
-
         children = {}
         for class_defn in self.get_children_classes(target_model.__class__):
             new_children = list(target_model.get_children(class_defn.get_class()))
