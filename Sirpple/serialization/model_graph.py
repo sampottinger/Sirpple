@@ -81,9 +81,6 @@ class ModelGraph:
         @rtype: Dictionary of ClassDefinitions to Model instances
         """
         
-        # Get the parent field name
-        field_name = target_model.get_parent_field_name()
-
         children = {}
         for class_defn in self.get_children_classes(target_model.__class__):
             new_children = list(target_model.get_children(class_defn.get_class()))
