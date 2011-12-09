@@ -21,7 +21,8 @@ class GAEAdaptedModel(db.Model):
         """ 
         Get all of the children of this model
 
-        @param 
+        @param child_class: The child class to look for children in
+        @type child_class: Any model instance
         @return: Iterator over this model's children
         @rtype: Iterator
         """

@@ -102,14 +102,20 @@ class ClassDefinition:
         """
         return self.__name
 
-    def get_fields(self):
+    def get_fields(self, include_built_in=False):
         """
         Returns all of the fields / properties this class definition currently has
 
+        @keyword include_built_in: If true, include built in properties. Defaults to False
+                                    (may not be easily accessbile by getter)
+        @type include_built_in: Boolean
         @return: Dicationary of fields
         @rtype: Dictionary from String to FieldDefition
         """
-        return self.__fields
+        if include_built_in:
+            return self.__fields
+        else:
+            return dict((k, v) for k, v in d.iteritems() if v.get_field_type().is_built_in() is False) # TODO: Very messy...
     
     def get_class(self):
         """
@@ -133,13 +139,23 @@ class ClassDefinition:
             self.__class = type(self.__name, (parent_class,), python_fields)
         
         return self.__class
+    
+    def get_parent_field_name(self):
+        """
+        Gets the name of the field that contains a reference to this instance's parent
+
+        @return: The name of the property of this model that contains
+                 a reference property / foreign key to its parent
+        @rtype: String
+        """
+        raise NotImplementedError("Must use implementor of this interface")
 
 class WrappedClassDefinition(ClassDefinition):
     """
     Definition that wraps an already existing class
     """
 
-    def __init__(self, inner_class, functions):
+    def __init__(self, inner_class, functions, parent_field_name):
         """
         Create a new wrapper around the given class
 
@@ -147,36 +163,25 @@ class WrappedClassDefinition(ClassDefinition):
         @type inner_class: Python Class object
         @param functions: List of function definitions to report
         @type functions: List to FunctionDefintions
+        @param parent_field_name: The name of the field containing a reference
+                                  this model's parent model
+        @type parent_field_name: String
         """
         self.__class = inner_class
         self.__fields = functions
+        self.__parent_field_name = parent_field_name
     
     def get_name(self):
-        """
-        Determine which class this definition goes with
-
-        @return: The name of the class corresponding to this definition
-        @rtype: String
-        """
         return self.__class.__name__
     
     def get_fields(self):
-        """
-        Returns all of the fields / properties this class definition currently has
-
-        @return: Dicationary of fields
-        @rtype: Dictionary from String to FieldDefition
-        """
         return self.__fields
     
     def get_class(self):
-        """
-        Gets the Python version of this class
-
-        @return: The Python native copy of this loaded class
-        @rtype: Class which is a child of PARENT_CLASS
-        """
         return self.__class
+    
+    def get_parent_field_name(self):
+        return self.__parent_field_name
 
 class PropertyDefinition:
     """ 
@@ -201,15 +206,6 @@ class PropertyDefinition:
         self.config_name = config_name
         self.db_class_name = db_class_name
         self.parameters = parameters
-    
-    def is_actual_property(self):
-        """
-        Inidicates if a property should be ignored because it is a built-in
-
-        @return: True if this should be added to the property. False if it should be ignored.
-        @rtye: Boolean
-        """
-        return True
     
     def is_built_in(self, field_name):
         """

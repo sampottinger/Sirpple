@@ -102,56 +102,6 @@ class DatabaseManager:
         # TODO: Switch on backend
         return uac_checker.GAEUACChecker.get_instance()
 
-class ChildrenResolver:
-    """
-    Interface for database specific classes that resolve children of models
-
-    Fully abstract class describing resolvers that find children of models
-    from the underlying database
-    """
-
-    def __init__(self):
-        pass
-    
-    def get_children(self, target_model, children_model_class):
-        """
-        Gets the children of the given target model that are of children_model_class
-
-        @param target_model: The model to look for children of
-        @type target_model: Any database model instance
-        @param children_model_class: The class to look for children in
-        @type childrem_model_class: DB model subclass
-        @return: The children entities
-        @rtype: Iterator over children_model_class instances
-        """
-        raise NotImplementedError("Must use implmentor of ChildrenResolver")
-
-class GAEChildrenResolver(ChildrenResolver):
-    """
-    Google App Engine specific strategy for getting children from the database
-    """
-
-    __instance = None
-
-    @classmethod
-    def get_instance(self):
-        """
-        Get a shared instance of this GAEChildrenResolver singleton
-
-        @return: Shared GAEChildrenResolver instance
-        @rtype: GAEChildrenResolver
-        """
-        if GAEChildrenResolver.__instance == None:
-            GAEChildrenResolver.__instance = GAEChildrenResolver()
-        
-        return GAEChildrenResolver.__instance
-
-    def __init__(self):
-        ChildrenResolver.__init__(self)
-    
-    def get_children(self, target_model, children_model_class):
-        return target_model.get_children(children_model_class)
-
 class PropertyDefinitionFactory:
     """
     Factory that produces database specific property definitions
@@ -237,5 +187,5 @@ class EmptyReferenePropertyDefinition(model_spec.PropertyDefinition):
     def get_property(self, field_name):
         return None
     
-    def is_actual_property(self):
+    def is_built_in(self, field_name):
         return False

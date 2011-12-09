@@ -42,21 +42,21 @@ class ModelGraph:
         """
         return self.__factory.get_class_definition(class_name)
     
-    def get_children_classes(self, field_name, model_class):
+    def get_children_classes(self, model_class):
         """
         Determines the "children classes" for the given model class
 
         Finds all of the children clases for the given model class that establish
         that relationship through the field of the given name
 
-        @param propert_name: The field establishing the parent-child relationship
-        @type field_name: String
         @param model_class: The class to find children for
         @type model_class: Any registered (in config file) model class object
         @return: List of parent classes
         @rtype: List of ClassDefinitions
         """
         model_class_name = model_class.__name__
+
+        field_name = model_class.get_parent_field_name()
 
         # Check cache for existing relationship
         if not field_name in self.__field_relationship_cache:
@@ -71,23 +71,22 @@ class ModelGraph:
         else:
             return relationships[model_class_name]
     
-    def get_children(self, target_model, field_name):
+    def get_children(self, target_model):
         """
         Get all of the immediate children of target_model
 
         @param target_model: The model instance to get the children for
         @type target_model: Any Model instance
-        @param field_name: The name of the field to look for the parent-child 
-                           relationship
-        @type field_name: String
         @return: Dictionary of immediate children of target_model by type
         @rtype: Dictionary of ClassDefinitions to Model instances
         """
-        resolver = backends.DatabaseManager.get_instance().get_children_resolver()
         
+        # Get the parent field name
+        field_name = target_model.get_parent_field_name()
+
         children = {}
-        for class_defn in self.get_children_classes(field_name, target_model.__class__):
-            new_children = list(resolver.get_children(target_model, class_defn.get_class()))
+        for class_defn in self.get_children_classes(target_model.__class__):
+            new_children = list(target_model.get_children(class_defn.get_class()))
             children[class_defn] = new_children
 
         return children
