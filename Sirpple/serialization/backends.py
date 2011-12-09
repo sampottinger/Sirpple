@@ -146,12 +146,12 @@ class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
     def __init__(self):
         PropertyDefinitionFactory.__init__(self)
     
-    def is_reference(self):
-        return True
-    
     def get_definition(self, config_name, db_class_name, parameters):
         if db_class_name == "ReferenceProperty":
-            return GAEReferencePropertyDefinition(config_name, db_class_name, parameters)
+            if config_name == "parent":
+                
+            else:
+                return GAEReferencePropertyDefinition(config_name, db_class_name, parameters)
         else:
             return SimplePropertyDefinition(config_name, db_class_name, parameters)
 
@@ -169,15 +169,23 @@ class GAEReferencePropertyDefinition(model_spec.PropertyDefinition):
     """
 
     def get_property(self, field_name):
-        if self.is_built_in(field_name):
+        if self.is_built_in():
             return None
         else:
             params = self.parameters
             params["collection_name"] = field_name + "_collection"
             return DatabaseManager.get_instance().get_property_class(self.db_class_name, self.parameters)
     
-    def is_built_in(self, field_name):
-        return field_name == "parent";
+    def is_reference(self):
+        return True
+
+class GAEParentPropertyDefinition(GAEReferencePropertyDefinition):
+    """
+    Reference property definitions for parent relationships
+    """
+
+    def is_built_in(self):
+        return False
 
 class EmptyReferenePropertyDefinition(model_spec.PropertyDefinition):
     """
@@ -188,4 +196,4 @@ class EmptyReferenePropertyDefinition(model_spec.PropertyDefinition):
         return None
     
     def is_built_in(self, field_name):
-        return False
+        return True

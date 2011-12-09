@@ -126,7 +126,7 @@ class ConfigModelFactory:
         """
         if not class_name in self.__property_definitions:
             raise ValueError(class_name + " does not have a corresponding database property registered. Check your types yaml file.")
-        return self.__property_definitions[class_name].is_built_int(field_name)
+        return self.__property_definitions[class_name].is_built_in()
     
     def get_property_instance(self, class_name, field_name):
         """

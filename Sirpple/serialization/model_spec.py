@@ -115,7 +115,7 @@ class ClassDefinition:
         if include_built_in:
             return self.__fields
         else:
-            
+
             def builtin_filter(item):
                 return item[0].get_field_type().is_built_in()
             
@@ -212,16 +212,14 @@ class PropertyDefinition:
         self.db_class_name = db_class_name
         self.parameters = parameters
     
-    def is_built_in(self, field_name):
+    def is_built_in(self):
         """
         Determines if this property is a built-in or if it is an actual model property to be added
 
-        @param field_name: The name of the field in the model this property type would be used for
-        @type field_name: String
         @return: True if built-in (and should not be created) and False if it should be added to the model
         @rtype: Boolean
         """
-        return True
+        return False
     
     def is_reference(self):
         """
