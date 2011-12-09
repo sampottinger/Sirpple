@@ -35,7 +35,7 @@ Method:
     name: String
     signature: String # yaml string like "{x: int, y: int}"
     body_type: String # enum-like type instead?
-    body: String      # format depends on type
+    body: Text      # format depends on type
 
 Method.GameObjectMethod:
     parent: GameObject
