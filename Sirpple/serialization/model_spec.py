@@ -77,7 +77,9 @@ class FieldDefinition:
 class ClassDefinition:
     """ Definition of a model loaded through a configuration secification """
 
-    def __init__(self, name, fields, parent_class):
+    DEFAULT_PARENT_FIELD = "parent" # This is db independent
+
+    def __init__(self, name, fields, parent_class, parent_field):
         """
         Constructor for ClassDefintion
 
@@ -87,11 +89,14 @@ class ClassDefinition:
         @type fields: Dictionary from String to FieldDefinition
         @param parent_class: The name of the class to use as this class' parent
         @type parent_class: String
+        @param parent_field: The definition of the field that contains parent information
+        @type pareent_field: FieldDefinition
         """
         self.__fields = fields
         self.__name = name
         self.__parent_class_name = parent_class
         self.__class = None
+        self.__parent_field = parent_field
     
     def get_name(self):
         """
@@ -145,22 +150,22 @@ class ClassDefinition:
         
         return self.__class
     
-    def get_parent_field_name(self):
+    def get_parent_field(self):
         """
         Gets the name of the field that contains a reference to this instance's parent
 
-        @return: The name of the property of this model that contains
+        @return: The definition of the property of this model that contains
                  a reference property / foreign key to its parent
-        @rtype: String
+        @rtype: FieldDefinition
         """
-        raise NotImplementedError("Must use implementor of this interface")
+        return self.__parent_field
 
 class WrappedClassDefinition(ClassDefinition):
     """
     Definition that wraps an already existing class
     """
 
-    def __init__(self, inner_class, functions, parent_field_name):
+    def __init__(self, inner_class, functions, parent_field):
         """
         Create a new wrapper around the given class
 
@@ -168,13 +173,12 @@ class WrappedClassDefinition(ClassDefinition):
         @type inner_class: Python Class object
         @param functions: List of function definitions to report
         @type functions: List to FunctionDefintions
-        @param parent_field_name: The name of the field containing a reference
-                                  this model's parent model
-        @type parent_field_name: String
+        @param parent_field: The definition of the field that contains parent information
+        @type pareent_field: FieldDefinition
         """
         self.__class = inner_class
         self.__fields = functions
-        self.__parent_field_name = parent_field_name
+        self.__parent_field = parent_field
     
     def get_name(self):
         return self.__class.__name__
@@ -185,8 +189,8 @@ class WrappedClassDefinition(ClassDefinition):
     def get_class(self):
         return self.__class
     
-    def get_parent_field_name(self):
-        return self.__parent_field_name
+    def get_parent_field(self):
+        return self.__parent_field
 
 class PropertyDefinition:
     """ 
