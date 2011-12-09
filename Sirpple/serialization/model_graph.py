@@ -55,8 +55,10 @@ class ModelGraph:
         @rtype: List of ClassDefinitions
         """
         model_class_name = model_class.__name__
-
-        field_name = model_class.get_parent_field_name()
+        
+        model_class_def = self.__factory.get_class_definition(model_class_name)
+        
+        field_name = model_class_def.get_parent_field_name()
 
         # Check cache for existing relationship
         if not field_name in self.__field_relationship_cache:
