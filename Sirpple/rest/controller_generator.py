@@ -2,6 +2,8 @@
 Module contiaining logic to build the REST controllers from config files
 """
 
+import rest.gae_controllers
+
 class ControllerGeneratorFactory:
     """ Factory that chooses the generator specific to the requested DB """
 
@@ -40,7 +42,7 @@ class ControllerGeneratorFactory:
         return self.__available_generators[db]
 
 class ControllerGenerator:
-    """ Interface for db-specific REST API builders """
+    """ Abstract class for db-specific REST API builders """
 
     def __init__(self):
         pass
@@ -55,6 +57,22 @@ class ControllerGenerator:
         @rtype: Controller class / function
         """
         raise NotImplementedError("Must use implementor of this abstract class")
+    
+    def build_interfaces(self, class_definitions):
+        """
+        Create interfaces for the given set of class definitions
+
+        @param class_defintions: Descriptors of the classes to build controllers for
+        @type class_definitions: Iterable over ClassDefinition
+        @return: List of tuples of URL patterns and the controller
+        @rtype: List of (url pattern, db specific handler / controller)
+        """
+        retlist = []
+
+        def build_tuple(definition):
+            return (definition, self.build_interface(definition))
+
+        return list(build_tuple(definition) for definition in class_definitions)
 
 class GAEControllerGenerator(ControllerGenerator):
     """ Generator of Google App Engine controllers """
@@ -63,4 +81,4 @@ class GAEControllerGenerator(ControllerGenerator):
         ControllerGenerator.__init__(self)
     
     def build_interface(self, class_definition):
-        # TODO: Pick up here
+        return gae_controllers.GAEController(class_definition.get_class())
