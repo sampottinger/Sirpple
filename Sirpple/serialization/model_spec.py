@@ -115,7 +115,12 @@ class ClassDefinition:
         if include_built_in:
             return self.__fields
         else:
-            return dict((k, v) for k, v in d.iteritems() if v.get_field_type().is_built_in() is False) # TODO: Very messy...
+            
+            def builtin_filter(item):
+                return item[0].get_field_type().is_built_in()
+            
+            fields = filter(builtin_filter, self.__fields.items())
+            return dict(fields)
     
     def get_class(self):
         """
