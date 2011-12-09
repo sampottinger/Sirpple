@@ -106,8 +106,7 @@ class ClassDefinition:
         """
         Returns all of the fields / properties this class definition currently has
 
-        @keyword include_built_in: If true, include built in properties. Defaults to False
-                                    (may not be easily accessbile by getter)
+        @keyword include_built_in: If true, include built in properties. Defaults to False.
         @type include_built_in: Boolean
         @return: Dicationary of fields
         @rtype: Dictionary from String to FieldDefition

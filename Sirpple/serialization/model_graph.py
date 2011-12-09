@@ -3,6 +3,8 @@
 import config_model
 import backends
 
+# TODO: Make sure nobody else is using anything but ModelGraph to get at this
+
 class ModelGraph:
     """ 
     Graph of model schema structure as loaded from configuration files
@@ -78,7 +80,7 @@ class ModelGraph:
         @param target_model: The model instance to get the children for
         @type target_model: Any Model instance
         @return: Dictionary of immediate children of target_model by type
-        @rtype: Dictionary of ClassDefinitions to Model instances
+        @rtype: Dictionary of ClassDefinitions to list of Model instances
         """
         
         # Get the parent field name
