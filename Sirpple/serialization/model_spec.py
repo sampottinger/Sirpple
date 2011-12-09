@@ -117,7 +117,7 @@ class ClassDefinition:
         else:
 
             def builtin_filter(item):
-                return item[0].get_field_type().is_built_in()
+                return item[1].get_field_type().is_built_in()
             
             fields = filter(builtin_filter, self.__fields.items())
             return dict(fields)
@@ -134,7 +134,7 @@ class ClassDefinition:
 
             python_fields = {}
 
-            for field_name in self.__fields:
+            for field_name in self.get_fields():
                 python_fields[field_name] = self.__fields[field_name].get_field()
             
             class_factory = config_model.ConfigModelFactory.get_instance()

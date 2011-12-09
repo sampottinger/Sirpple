@@ -149,7 +149,7 @@ class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
     def get_definition(self, config_name, db_class_name, parameters):
         if db_class_name == "ReferenceProperty":
             if config_name == "parent":
-                
+                return GAEParentPropertyDefinition(config_name, db_class_name, parameters)
             else:
                 return GAEReferencePropertyDefinition(config_name, db_class_name, parameters)
         else:
@@ -185,7 +185,7 @@ class GAEParentPropertyDefinition(GAEReferencePropertyDefinition):
     """
 
     def is_built_in(self):
-        return False
+        return True
 
 class EmptyReferenePropertyDefinition(model_spec.PropertyDefinition):
     """
