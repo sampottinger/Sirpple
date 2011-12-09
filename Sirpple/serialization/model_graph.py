@@ -58,20 +58,27 @@ class ModelGraph:
         
         model_class_def = self.__factory.get_class_definition(model_class_name)
         
-        field_name = model_class_def.get_parent_field().get_name()
+        field = model_class_def.get_parent_field()
 
-        # Check cache for existing relationship
-        if not field_name in self.__field_relationship_cache:
-            self.__load_field_relationships(field_name)
+        if not field == None:
+
+            field_name = field.get_name()
+
+            # Check cache for existing relationship
+            if not field_name in self.__field_relationship_cache:
+                self.__load_field_relationships(field_name)
+            
+            # Get existing relationships
+            relationships = self.__field_relationship_cache[field_name]
+
+            # Return children
+            if not model_class_name in relationships:
+                return []
+            else:
+                return relationships[model_class_name]
         
-        # Get existing relationships
-        relationships = self.__field_relationship_cache[field_name]
-
-        # Return children
-        if not model_class_name in relationships:
-            return []
         else:
-            return relationships[model_class_name]
+            return []
     
     def get_children(self, target_model):
         """
