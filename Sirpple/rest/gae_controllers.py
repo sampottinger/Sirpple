@@ -20,20 +20,29 @@ class GAEController(webapp2.RequestHandler):
         
         model_factory = config_model.ConfigModelFactory.get_instance()
             
-        self.__target_class = target_class
-        self.__target_class_name = target_class.__name__
-        self.__target_class_defn = model_factory.get_class(self.__target_class_name)
-        self.__project_model = model_factory.get_class(GAEController.PROJECT_MODEL_NAME)
-        self.__uac_checker = backends.DatabaseManager.get_instance().get_uac_checker()
+        self.target_class = target_class
+        self.target_class_name = target_class.__name__
+        self.target_class_defn = model_factory.get_class(self.__target_class_name)
+        self.project_model = model_factory.get_class(GAEController.PROJECT_MODEL_NAME)
+        self.uac_checker = backends.DatabaseManager.get_instance().get_uac_checker()
     
     def get_instance_by_id(self, instance_id):
         return self.__target_class.get_by_id(instance_id)
     
     def write_serialized_response(self, target):
+        """ Write out target as a serialized object """
         pass
     
-    def interpret_foreign_value(self, target):
+    def interpret_foreign_value(self, field_name, target):
+        """ Take in a user-provided value and provide a corresponding pure python value with inferred type """
         pass
+    
+    def is_authorized(self, target):
+        """ Checks to see if the current user can operate on target """
+        user = users.get_current_user()
+        return self.uac_checker.is_authorized(x, user)
+
+class GAEAccessController(GAEController):
 
     def get(self, instance_id):
         result = self.get_instance_by_id(instance_id)
@@ -57,14 +66,6 @@ class GAEController(webapp2.RequestHandler):
             result = self.__do_delete(instance_id)
         else:
             self.error(BaseHandler.METHOD_NOT_ALLOWED)
-        
-        serializer = SerializerFactory.get_serializer("complex-JSON")
-        self.response.out.write(serializer.dumps(result))
-
-    def __is_authorized(self, target):
-        """ Checks to see if the current user can operate on target """
-        user = users.get_current_user()
-        return self.__uac_checker.is_authorized(x, user)
 
     def __do_post(self, instance_id):
 
@@ -75,11 +76,11 @@ class GAEController(webapp2.RequestHandler):
             return
         
         # Check authorization
-        if not self.__is_authorized(instance):
+        if not self.is_authorized(instance):
             self.error(BaseHandler.FORBIDDEN)
             return
 
-        fields = self.__target_class_defn.get_fields()
+        fields = self.target_class_defn.get_fields()
 
         # Make changes
         for field_name in filter(lambda x: x.is_exposed(), fields.keys()):
@@ -105,7 +106,7 @@ class GAEController(webapp2.RequestHandler):
             return
         
         # Check authorization
-        if not self.__is_authorized(instance):
+        if not self.is_authorized(instance):
             self.error(BaseHandler.FORBIDDEN)
             return
         
