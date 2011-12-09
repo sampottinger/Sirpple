@@ -2,7 +2,7 @@
 Module that abstracts away the backend database / framework
 """
 
-from ..uac import uac_checker
+from uac import uac_checker
 import adapted_models
 import model_spec
 
