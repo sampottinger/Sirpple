@@ -1,6 +1,7 @@
 """ Mechanisms for supporting data transfer objects """
 
 import logging
+from serialization import type_converters
 from serialization import model_graph
 
 class DTOBuilder:
@@ -33,6 +34,7 @@ class DTOBuilder:
         @return: Organized contents of target including ids of children
         @rtype: Dictionary
         """
+        converter = type_converters.TypeConverter.get_instance()
 
         graph = model_graph.ModelGraph.get_current_graph()
 
@@ -54,12 +56,12 @@ class DTOBuilder:
         
         # Fill in the children instances
         for defn, instance in children.items():
-            id_list = map()
-            ret_dict[CHILDREN_PREFIX + defn.get_name().lower()] = id_list
+            pointers = map(lambda x: converter.convert_for_dto(x.__class__.__name__, x))
+            ret_dict[DTOBuilder.CHILDREN_PREFIX + defn.get_name().lower()] = pointers
         
         return ret_dict
     
-    def read_dto(self, target, class_definition, target=None):
+    def read_dto(self, source, class_definition, target=None):
         """
         Reads out from a DTO to generate a fully instantiated instance
 
@@ -74,6 +76,9 @@ class DTOBuilder:
         @rtype: Instance of the class class_defn represents or None on fail
         """
 
+        # TODO: Might the method of using a dict for attributes cause
+        # issues for other backends?
+
         # Get actual class
         target_class = class_defn.get_class()
 
@@ -83,8 +88,12 @@ class DTOBuilder:
         # Create structue to hold cleaned fields
         cleaned_foreign_entries = {}
 
+        # If we are writing into a new instance, create temp dict
+        if target == None:
+            target_dict = {}
+
         # Clean and check for editing non-exposed fields
-        for foreign_field, foreign_value in target:
+        for foreign_field, foreign_value in source:
 
             # Check that the field is available
             if not foriegn_field in field_definitions:
@@ -96,5 +105,20 @@ class DTOBuilder:
             if not field_definition.is_exposed():
                 logging.error("Attempted to write non-exposed field " + field_defintion.get_name() + " for " + target_class.get_name() + " through REST API")
             
-            # Clean and store
-            cleaned_foriegn_entries[foreign_field] = cgi.escape()
+            # Convert and clean
+            type_name = field_definition.get_field_type_name()
+            new_value = converter.convert_from_dto(type_name, source)
+        
+            # If we are writing into an existing instance
+            if target:
+                setattr(target, field_definition.get_name(), new_value)
+            
+            # Put it in in the dict for real initalization later
+            else:
+                target_dict[field_definition.get_name()] = new_value
+        
+        # Create instance if necessary
+        if target == None:
+            return target_class(target_dict) # TODO: Non-GAE / Django backends?
+        else:
+            return target

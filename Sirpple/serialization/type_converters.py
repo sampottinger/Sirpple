@@ -173,9 +173,3 @@ class StringConversionStrategy(TypeConversionStrategy):
     
     def convert_for_dto(self, value):
         return value
-
-class UserReferenceConversionStrategy(TypeConversionStrategy):
-    """ Strategy for properties referring to users """
-
-    def convert_from_dto(self, value):
-        # TODO: Need db independent user class
