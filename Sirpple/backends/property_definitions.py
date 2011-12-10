@@ -78,13 +78,10 @@ class GAEReferencePropertyDefinition(model_spec.PropertyDefinition):
     """
 
     def get_property(self, field_name):
-        if self.is_built_in():
-            return None
-        else:
-            params = self.parameters
-            params["collection_name"] = field_name + "_collection"
-            manager = platform_manager.PlatformManager.get_instance()
-            return manager.get_property_class(self.db_class_name, self.parameters)
+        params = self.parameters
+        params["collection_name"] = field_name + "_collection"
+        manager = platform_manager.PlatformManager.get_instance()
+        return manager.get_property_class(self.db_class_name, self.parameters)
     
     def is_reference(self):
         return True

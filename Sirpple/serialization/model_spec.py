@@ -150,10 +150,14 @@ class ClassDefinition:
 
         if self.__class == None:
 
+            platform = platform_manager.PlatformManager.get_instance()
+
             python_fields = {}
 
-            #for field_name in self.get_fields():
-            #    python_fields[field_name] = self.__fields[field_name].get_field()
+            filter_built_in = lambda x: not x in platform.get_built_in_field_names()
+
+            for field_name in filter(filter_built_in, self.get_fields()):
+                python_fields[field_name] = self.__fields[field_name].get_field()
             
             class_factory = config_model.ConfigModelFactory.get_instance()
 
