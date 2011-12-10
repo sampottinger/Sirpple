@@ -79,7 +79,7 @@ class GAEController(webapp2.RequestHandler):
         """ 
         pass
 
-class GAEIndexHandler(GAEController):
+class GAEIndexController(GAEController):
     """ Google App Engine handler for listing objects """
 
     def __init__(self, target_class, *args, **kwargs):
@@ -115,7 +115,7 @@ class GAEIndexHandler(GAEController):
         results = list(query)
         self.write_serialized_response(results)
 
-class GAEIndividualGet(GAEController):
+class GAEIndividualGetController(GAEController):
     """ Handler for a GET request on a specific instance """
 
     def get(self):
@@ -134,3 +134,9 @@ class GAEIndividualGet(GAEController):
         
         # Serialize and send back
         self.write_serialized_response(target)
+
+class GAEModifyController(GAEController):
+    """ Handler for a DELETE, POST, or PUT on a resource """
+
+    def post(self):
+        pass
