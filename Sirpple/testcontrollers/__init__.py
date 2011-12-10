@@ -24,6 +24,12 @@ class TestDriver(object):
         try:
             module = importlib.import_module('test.'+module_name)
         except ImportError:
+            #TODO: figure out whether this ImportError came from 
+            #      immediately above, or from a recursive import
+            #      if the problem is deeper then print exc
+            #      else print module not found
+            exc = traceback.format_exc()
+            print >>response_out, exc
             print >>response_out, 'Test module', module_name, 'not found'
             return
         
