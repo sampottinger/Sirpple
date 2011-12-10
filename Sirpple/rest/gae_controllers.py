@@ -3,14 +3,7 @@
 import logging
 import webapp2
 from google.appengine.api import users
-from google.appengine.ext.db import Query
-<<<<<<< HEAD
-from ..serialization import config_model
-from ..backends import platform_manager
-=======
-from serialization import config_model
-from serialization import backends
->>>>>>> master
+from serialization import model_graph
 
 class GAEController(webapp2.RequestHandler):
 
@@ -20,106 +13,95 @@ class GAEController(webapp2.RequestHandler):
     INSTANCE_ID_PARAM = "id"
     PARENT_PARAM = "parent"
 
+    # TODO: These could pop out into a more generic controller
+    NOT_ACCEPTABLE = 406 
+
     def __init__(self, target_class, *args, **kwargs):
         webapp2.RequestHandler.__init__(self, *args, **kwargs)    
         
-        model_factory = config_model.ConfigModelFactory.get_instance()
-            
-        self.target_class = target_class
-        self.target_class_name = target_class.__name__
-        self.target_class_defn = model_factory.get_class(self.__target_class_name)
-        self.project_model = model_factory.get_class(GAEController.PROJECT_MODEL_NAME)
-        self.uac_checker = platform_manager.PlatformManager.get_instance().get_uac_checker()
-    
-    def get_instance_by_id(self, instance_id):
-        return self.__target_class.get_by_id(instance_id)
+        graph = model_graph.ModelGraph.get_current_graph()
+        
+        self.__target_class_defn = graph.get_class_definition(self.__target_class_name)
+        self.__uac_checker = platform_manager.PlatformManager.get_instance().get_uac_checker()
     
     def write_serialized_response(self, target):
-        """ Write out target as a serialized object """
+        """
+        Write out target as a serialized object to response
+
+        @param target: The object or list of objects to serialize
+        @type target: Model instance from class loaded from config file
+        """
         pass
     
-    def interpret_foreign_value(self, field_name, target):
-        """ Take in a user-provided value and provide a corresponding pure python value with inferred type """
+    def has_access(self, target):
+        """
+        Determines if current user has access to target
+
+        @param target: The target object to load
+        @type target: Instance of model from class loaded from config file
+        """
         pass
     
-    def is_authorized(self, target):
-        """ Checks to see if the current user can operate on target """
-        user = users.get_current_user()
-        return self.uac_checker.is_authorized(x, user)
+    def get_by_id(self, class_name, target_id):
+        """ Gets the instance of the given class by id
 
-class GAEAccessController(GAEController):
+        @param target_class The class to look for the given instance in
+        @type target_class: Name of the class to look for
+        @param target_id: The id of the instance to look for
+        @type target_id: int
+        """
+        pass
+    
+    def get_current_username(self):
+        """
+        Gets the unique username of the current user
 
-    def get(self, instance_id):
-        result = self.get_instance_by_id(instance_id)
-        serializer = SerializerFactory.get_serializer(GAEController.DEFAULT_SERIALIZER)
-        self.response.out.write(serializer.dumps(result))
+        @return: Unique username to the current request's sender
+        @rtype: String
+        """
+        pass
+    
+    def get_target_class_definition(self):
+        """
+        Gets the definition of the class that this handler services
 
-    def post(self, instance_id):
-        
-        # Determine action
-        action = self.request.get(BaseHandler.ACTION_PARAM, None)
+        @return: The definition of the class that this handler supports
+        @rtype: ClassDefinition
+        """
+        return self.__target_class_defn
 
-        # Check to make sure action is available
-        if action == None: 
-            self.error(BaseHandler.METHOD_NOT_ALLOWED)
+class GAEIndexHandler(GAEController):
+    """ Google App Engine handler for listing objects """
+
+    def __init__(self, target_class, *args, **kwargs):
+        GAEController.__init__(target_class, *args, **kwargs)
+    
+    def get(self):
+        graph = model_graph.ModelGraph.get_current_graph()
+        target_class_defn = self.get_target_class_definition()
+        target_class_name = target_class_defn.get_name()
+        target_class = target_class_defn.get_class()
+        parent_class_name = target_class_defn.get_parent_field().get_field_type_name()
+        parent_class = graph.get_class_definition(parent_class_name).get_class()
+
+        # Get the parent from the request
+        parent_id_str = self.get(GAEController.PARENT_PARAM)
+        if parent == None:
+            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
+            logging.error("Asked for index of " + target_class_name + " without specifying parent")
             return
-
-        # Switch on action
-        elif action == BaseHandler.POST:
-            result = self.__do_post(instance_id)
-        elif action == BaseHandler.DELETE:
-            result = self.__do_delete(instance_id)
-        else:
-            self.error(BaseHandler.METHOD_NOT_ALLOWED)
-
-    def __do_post(self, instance_id):
-
-        # Get the instance
-        instance = self.get_instance_by_id(instance_id)
-        if instance == None:
-            self.error(BaseHandler.METHOD_NOT_ALLOWED)
-            return
+        parent_id = int(parent_id_str)
+        parent = parent_class.get_by_id(parent_id)
         
-        # Check authorization
-        if not self.is_authorized(instance):
-            self.error(BaseHandler.FORBIDDEN)
-            return
+        # Check user access
+        if not self.has_access(parent):
+            self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
+            logging.error(self.get_current_username() + " attempted unauthorized access to " + target_class_name)
 
-        fields = self.target_class_defn.get_fields()
+        # Query for children
+        query = Query(target_class)
+        query.filter("parent =", parent)
 
-        # Make changes
-        for field_name in filter(lambda x: x.is_exposed(), fields.keys()):
-
-            if field_name in arguments:
-                new_val_raw = self.get(field_name)
-                new_val = self.interpret_foreign_value(field_name, new_val_raw)
-                setattr(instance, field_name, new_val)
-        
-        # Save back
-        instance.put()
-
-        # Report on success
-        self.__write_seralized_response(instance)
-        self.set_status(BaseHandler.UPDATED)
-
-    def __do_delete(self, instance_id):
-        
-        # Get the instance
-        instance = self.get_instance_by_id(instance_id)
-        if instance == None:
-            self.error(BaseHandler.METHOD_NOT_ALLOWED)
-            return
-        
-        # Check authorization
-        if not self.is_authorized(instance):
-            self.error(BaseHandler.FORBIDDEN)
-            return
-        
-        # Write out soon to be deleted contents
-        self.write_serialized_response(instance)
-
-        # Delete
-        instance.delete()
-
-        # Confirm
-        self.set_status(BaseHandler.DELETED)
+        # Serialize and return
+        results = list(query)
+        self.write_serialized_response(results)
