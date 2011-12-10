@@ -3,9 +3,11 @@
 import webapp2
 import yamlmodels
 from page_builder import managers
+import importlib
+import re
 try:
     import test
-except:
+except ImportError:
     test = None
 models = yamlmodels.load()
 
@@ -22,17 +24,18 @@ class TestHandler(webapp2.RequestHandler):
             return
         
         module_name = self.request.get('module')
+        module_name = re.sub('\.+','.',module_name.lstrip('.'))
         test_name = self.request.get('test')
         
         if not module_name:
             print >>self.response.out, 'No test module specified'
             return
         
-        if not hasattr(test,module_name):
+        try:
+            module = importlib.import_module('test.'+module_name)
+        except ImportError:
             print >>self.response.out, 'Test module', module_name, 'not found'
             return
-        
-        module = getattr(test,module_name)
         
         if not test_name:
             print >>self.response.out, 'No test specified'
