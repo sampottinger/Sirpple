@@ -4,7 +4,6 @@ Module with facades that abstract away the backend database / framework
 
 from uac import uac_checker
 from serialization import adapted_models
-import property_definitions
 
 try:
     from google.appengine.ext import db
@@ -46,6 +45,9 @@ class PlatformManager:
         @return: PropertyDefinitionFactory implementor
         @rtype: Subclass of PropertyDefinitionFactory
         """
+        # TODO: This is messy
+        import property_definitions
+
         # TODO: Switch on this, scoping is important
         return property_definitions.GAEPropertyDefinitionFactory.get_instance()
 
@@ -101,3 +103,24 @@ class PlatformManager:
         """
         # TODO: Switch on backend
         return uac_checker.GAEUACChecker.get_instance()
+    
+    def get_parent_field_name(self):
+        """
+        Gets the db-specific field name containing information about the parent of an instance
+
+        @return: The name of the field that contains parent information in this
+                 database's models
+        @rtype: String
+        """
+        # TODO: Switch on backend
+        return "parent"
+    
+    def get_built_in_field_names(self):
+        """
+        Determines all of the fields that are provided by the specific backend in use
+
+        @return: List of names of fields that are provided by the current framework
+        @rtype: List of Strings
+        """
+        # TODO: Switch on backend
+        return ["parent"]

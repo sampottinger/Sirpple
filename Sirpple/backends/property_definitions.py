@@ -1,6 +1,7 @@
 """ Database specific property definitions and the classes that support them """
 
 from serialization import model_spec
+import platform_manager
 
 class PropertyDefinitionFactory:
     """
@@ -48,10 +49,7 @@ class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
     
     def get_definition(self, config_name, db_class_name, parameters):
         if db_class_name == "ReferenceProperty":
-            if config_name == "parent":
-                return GAEParentPropertyDefinition(config_name, db_class_name, parameters)
-            else:
-                return GAEReferencePropertyDefinition(config_name, db_class_name, parameters)
+            return GAEReferencePropertyDefinition(config_name, db_class_name, parameters)
         else:
             return SimplePropertyDefinition(config_name, db_class_name, parameters)
 
@@ -61,7 +59,7 @@ class SimplePropertyDefinition(model_spec.PropertyDefinition):
     """
 
     def get_property(self, field_name):
-        return PlatformManager.get_instance().get_property_class(self.db_class_name, self.parameters)
+        return platform_manager.PlatformManager.get_instance().get_property_class(self.db_class_name, self.parameters)
 
 class EmptyReferenePropertyDefinition(model_spec.PropertyDefinition):
     """
@@ -85,15 +83,8 @@ class GAEReferencePropertyDefinition(model_spec.PropertyDefinition):
         else:
             params = self.parameters
             params["collection_name"] = field_name + "_collection"
-            return PlatformManager.get_instance().get_property_class(self.db_class_name, self.parameters)
+            manager = platform_manager.PlatformManager.get_instance()
+            return manager.get_property_class(self.db_class_name, self.parameters)
     
     def is_reference(self):
-        return True
-
-class GAEParentPropertyDefinition(GAEReferencePropertyDefinition):
-    """
-    Reference property definitions for parent relationships
-    """
-
-    def is_built_in(self):
         return True

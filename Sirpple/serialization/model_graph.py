@@ -58,27 +58,21 @@ class ModelGraph:
         
         model_class_def = self.__factory.get_class_definition(model_class_name)
         
-        field = model_class_def.get_parent_field()
+        pm = backends.platform_manager.PlatformManager.get_instance()
+        field_name = pm.get_parent_field_name()
 
-        if not field == None:
-
-            field_name = field.get_name()
-
-            # Check cache for existing relationship
-            if not field_name in self.__field_relationship_cache:
-                self.__load_field_relationships(field_name)
-            
-            # Get existing relationships
-            relationships = self.__field_relationship_cache[field_name]
-
-            # Return children
-            if not model_class_name in relationships:
-                return []
-            else:
-                return relationships[model_class_name]
+        # Check cache for existing relationship
+        if not field_name in self.__field_relationship_cache:
+            self.__load_field_relationships(field_name)
         
-        else:
+        # Get existing relationships
+        relationships = self.__field_relationship_cache[field_name]
+
+        # Return children
+        if not model_class_name in relationships:
             return []
+        else:
+            return relationships[model_class_name]
     
     def get_children(self, target_model):
         """
@@ -113,7 +107,7 @@ class ModelGraph:
         for class_def in self.__factory.get_class_definitions().values():
 
             # Get all of the fields for this class
-            field_defs = class_def.get_fields()
+            field_defs = class_def.get_fields(include_built_in=True)
 
             # If this field is in this class, add its type to the set
             if field_name in field_defs:

@@ -123,7 +123,7 @@ class FieldDefinitionFactory:
 
         for source in sources:
             new_field = self.get_field(source, sources[source])
-            ret_val[source] = new_field
+            ret_val[new_field.get_name()] = new_field
         
         return ret_val
 

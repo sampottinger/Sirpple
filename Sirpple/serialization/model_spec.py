@@ -2,6 +2,7 @@
 Classes containing structural information about models loaded from configuration files
 """
 
+from backends import platform_manager
 import config_model
 
 class FieldDefinition:
@@ -22,6 +23,9 @@ class FieldDefinition:
         @param exposed: Specifies if this field is available through the REST API
         @type exposed: Boolean
         """
+        if name.find(".") != -1:
+            raise ValueError("Invalid name of property " + config_name)
+
         self.__name = name
         self.__field_type = field_type
         self.__exposed = exposed
@@ -73,6 +77,16 @@ class FieldDefinition:
         @rtype: Boolean
         """
         return self.__exposed
+    
+    def is_built_in(self):
+        """
+        Determine if this field is one provided by the framework
+
+        @return: True if this is built in or False otherwise
+        @rtype: Boolean
+        """
+        platform = platform_manager.PlatformManager.get_instance()
+        return self.get_name() in platform.get_built_in_field_names()
 
 class ClassDefinition:
     """ Definition of a model loaded through a configuration secification """
@@ -120,9 +134,8 @@ class ClassDefinition:
         if include_built_in:
             return self.__fields
         else:
-
             def builtin_filter(item):
-                return item[1].get_field_type().is_built_in()
+                return not item[1].is_built_in()
             
             fields = filter(builtin_filter, self.__fields.items())
             return dict(fields)
@@ -139,8 +152,8 @@ class ClassDefinition:
 
             python_fields = {}
 
-            for field_name in self.get_fields():
-                python_fields[field_name] = self.__fields[field_name].get_field()
+            #for field_name in self.get_fields():
+            #    python_fields[field_name] = self.__fields[field_name].get_field()
             
             class_factory = config_model.ConfigModelFactory.get_instance()
 
@@ -215,15 +228,6 @@ class PropertyDefinition:
         self.config_name = config_name
         self.db_class_name = db_class_name
         self.parameters = parameters
-    
-    def is_built_in(self):
-        """
-        Determines if this property is a built-in or if it is an actual model property to be added
-
-        @return: True if built-in (and should not be created) and False if it should be added to the model
-        @rtype: Boolean
-        """
-        return False
     
     def is_reference(self):
         """

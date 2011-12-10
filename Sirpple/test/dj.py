@@ -51,6 +51,6 @@ def children():
     projects = project_model.all()
     project = projects.get()
     
-    children = model_graph.ModelGraph.get_current_graph().get_children(project)
-    print 'Children test passed'
+    return model_graph.ModelGraph.get_current_graph().get_children(project)
+    #print 'Children test passed'
 
