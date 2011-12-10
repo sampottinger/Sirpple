@@ -5,7 +5,7 @@ import sys
 from serialization.config_model import ConfigModelFactory
 from serialization import model_graph
 from google.appengine.ext.db import Query
-#from compiler import astbuilder
+from compiler import ast
 
 import yamlmodels
 
@@ -53,4 +53,19 @@ def children():
     
     return model_graph.ModelGraph.get_current_graph().get_children(project)
     #print 'Children test passed'
+
+def compiler():
+    
+    setup_db()
+
+    factory = ConfigModelFactory.get_instance()
+    project_model = factory.get_model('Project')
+    
+    projects = project_model.all()
+    project = projects.get()
+    
+    factory = ast.NodeFactory.get_instance()
+    
+    tree = factory.create_tree(project)
+    print tree
 
