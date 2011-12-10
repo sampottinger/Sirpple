@@ -3,6 +3,7 @@
 from glob import glob
 from os.path import normpath
 from os.path import join as joinpath
+import json
 import pyyaml
 
 
@@ -75,7 +76,17 @@ class YamlAdapter(ParserAdapter):
         """
         return pyyaml.load(source)
 
-__parsers = {'yaml' : YamlAdapter()}
+class JSONAdapater(ParserAdapter):
+    """ Adapts the built in JSON parser / serializer to the generic parser interface """
+
+    def __init__(self):
+        ParserAdapter.__init__(self, extension='json')
+    
+    def loads(self, source):
+        return json.loads(source)
+
+__parsers = {'yaml' : YamlAdapter(),
+             'json' : JSONAdapter()}
 
 def get_parser(language):
     if language in __parsers:
