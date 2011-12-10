@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 
-from google.appengine.ext import db
-
 import os.path
 from serialization import loaders
 from glob import glob
