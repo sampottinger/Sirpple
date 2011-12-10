@@ -3,8 +3,8 @@ Module that abstracts away the backend database / framework
 """
 
 from uac import uac_checker
-import adapted_models
-import model_spec
+from serialization import adapted_models
+from serialization import model_spec
 
 try:
     from google.appengine.ext import db

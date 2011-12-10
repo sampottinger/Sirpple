@@ -2,7 +2,7 @@
 Classes for the management of model specifications and classes loaded from configuration files
 """
 
-from backends import platform_manager
+import backends
 import model_spec
 
 class ConfigModelFactory:
@@ -28,7 +28,7 @@ class ConfigModelFactory:
         Constructor for ConfigModelFactory that lazily loads class constants
         """
         self.reset()
-        platform = platform_manager.PlatformManager.get_instance()
+        platform = backends.platform_manager.PlatformManager.get_instance()
         default_class = platform.get_default_base_class()
         ConfigModelFactory.DEFAULT_PARENT_CLASS_DEFINTION = model_spec.WrappedClassDefinition(default_class, [], None) # TODO: Parent field name?
     	ConfigModelFactory.DEFAULT_PARENT_CLASS_DESCRIPTOR = "DefaultBase"
