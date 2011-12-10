@@ -69,6 +69,15 @@ class GAEController(webapp2.RequestHandler):
         @rtype: ClassDefinition
         """
         return self.__target_class_defn
+    
+    def get_target_instance_by_id(self):
+        """
+        Gets the instance with the id passed as a parameter in this request
+
+        @return: Target instance or None if id not specified
+        @rtype: Instance of the class this handler services
+        """ 
+        pass
 
 class GAEIndexHandler(GAEController):
     """ Google App Engine handler for listing objects """
@@ -105,3 +114,23 @@ class GAEIndexHandler(GAEController):
         # Serialize and return
         results = list(query)
         self.write_serialized_response(results)
+
+class GAEIndividualGet(GAEController):
+    """ Handler for a GET request on a specific instance """
+
+    def get(self):
+        servicing_class_name = self.get_class_definition().get_name()
+
+        # Get the instance in question
+        target = self.get_target_instance_by_id()
+        if target == None:
+            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
+            logging.error("Asked for " + servicing_class_name + " but no ID was provided")
+        
+        # Check that the user is authorized
+        if not self.has_access(target):
+             self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
+            logging.error(self.get_current_username() + " attempted unauthorized access to " + target_class_name)
+        
+        # Serialize and send back
+        self.write_serialized_response(target)
