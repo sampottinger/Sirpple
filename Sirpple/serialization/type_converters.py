@@ -173,3 +173,12 @@ class StringConversionStrategy(TypeConversionStrategy):
     
     def convert_for_dto(self, value):
         return value
+
+class UserConversionStrategy(TypeConversionStrategy):
+    """ Strategy for converting db-specific user constructs """
+
+    def convert_from_dto(self, value):
+        pass
+    
+    def convert_for_dto(self, value):
+        pass

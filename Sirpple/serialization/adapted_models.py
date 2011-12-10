@@ -10,7 +10,7 @@ except ImportError:
     db = None
     Query = None
 
-# TODO: Fully unified interface for adaptable models . . . see backends.DatabaseManager
+# TODO: Fully unified interface for adaptable models . . . see backends.platform_manger.PlatformManager
 
 class GAEAdaptedModel(db.Model):
     """

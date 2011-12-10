@@ -4,7 +4,7 @@ Module containing classes for serialzation between JSON and Python classes defin
 from glob import glob
 import os
 import logging
-import backends
+from backends import platform_manager
 
 from configparser import get_parser
 import model_spec
@@ -62,7 +62,7 @@ class PropertyDefinitionLoader:
             db_class_name = source["db_type"]
             parameters = source["parameters"]
         
-        factory = backends.DatabaseManager.get_instance().get_property_definition_factory()
+        factory = platform_manager.PlatformManager.get_instance().get_property_definition_factory()
         return factory.get_definition(config_name, db_class_name, parameters)
 
 class FieldDefinitionFactory:

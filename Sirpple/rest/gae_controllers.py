@@ -5,7 +5,7 @@ import webapp2
 from google.appengine.api import users
 from google.appengine.ext.db import Query
 from ..serialization import config_model
-from ..serialization import backends
+from ..backends import platform_manager
 
 class GAEController(webapp2.RequestHandler):
 
@@ -24,7 +24,7 @@ class GAEController(webapp2.RequestHandler):
         self.target_class_name = target_class.__name__
         self.target_class_defn = model_factory.get_class(self.__target_class_name)
         self.project_model = model_factory.get_class(GAEController.PROJECT_MODEL_NAME)
-        self.uac_checker = backends.DatabaseManager.get_instance().get_uac_checker()
+        self.uac_checker = platform_manager.PlatformManager.get_instance().get_uac_checker()
     
     def get_instance_by_id(self, instance_id):
         return self.__target_class.get_by_id(instance_id)

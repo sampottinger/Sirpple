@@ -2,7 +2,7 @@
 Module containing logic to check that a user is authorized to view / edit an entity
 """
 
-# TODO: Factory currently sitting serialization.backends
+# TODO: Factory currently sitting in backends.platform_manager.PlatformManager
 
 class UACChecker:
     """

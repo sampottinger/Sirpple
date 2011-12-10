@@ -16,7 +16,7 @@ except ImportError:
 # TODO: Push this out to a config file, scoping is important
 BACKEND = "GAE"
 
-class DatabaseManager:
+class PlatformManager:
     """
     Database manager that resolves names of property classes to actual property classes
     """
@@ -26,15 +26,15 @@ class DatabaseManager:
     @classmethod
     def get_instance(self):
         """
-        Get a shared instance of this DatabaseManager singleton
+        Get a shared instance of this PlatformManager singleton
 
-        @return: Shared DatabaseManager instance
-        @rtype: DatabaseManager
+        @return: Shared PlatformManager instance
+        @rtype: PlatformManager
         """
-        if DatabaseManager.__instance == None:
-            DatabaseManager.__instance = DatabaseManager()
+        if PlatformManager.__instance == None:
+            PlatformManager.__instance = PlatformManager()
         
-        return DatabaseManager.__instance
+        return PlatformManager.__instance
 
     def __init__(self):
         pass
@@ -75,7 +75,7 @@ class DatabaseManager:
     
     def get_collection_field_names(self):
         """
-        Gets the field that require collections in parsing
+        Gets the field that require collections in parsing (changes between db)
 
         @return: List of field names that should become collections
         @rtype: Tuple of field names
@@ -161,7 +161,7 @@ class SimplePropertyDefinition(model_spec.PropertyDefinition):
     """
 
     def get_property(self, field_name):
-        return DatabaseManager.get_instance().get_property_class(self.db_class_name, self.parameters)
+        return PlatformManager.get_instance().get_property_class(self.db_class_name, self.parameters)
 
 class EmptyReferenePropertyDefinition(model_spec.PropertyDefinition):
     """
@@ -185,7 +185,7 @@ class GAEReferencePropertyDefinition(model_spec.PropertyDefinition):
         else:
             params = self.parameters
             params["collection_name"] = field_name + "_collection"
-            return DatabaseManager.get_instance().get_property_class(self.db_class_name, self.parameters)
+            return PlatformManager.get_instance().get_property_class(self.db_class_name, self.parameters)
     
     def is_reference(self):
         return True
