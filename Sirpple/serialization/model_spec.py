@@ -4,6 +4,7 @@ Classes containing structural information about models loaded from configuration
 
 from backends import platform_manager
 import config_model
+import model_graph
 
 class FieldDefinition:
     """
@@ -121,24 +122,40 @@ class ClassDefinition:
         """
         return self.__name
 
-    def get_fields(self, include_built_in=False):
+    def get_fields(self, include_built_in=False, include_inherited=True):
         """
         Returns all of the fields / properties this class definition currently has
 
         @keyword include_built_in: If true, include built in properties. Defaults to False
                                     (may not be easily accessbile by getter)
         @type include_built_in: Boolean
+        @keyword include_inherited: Put inherited fields in the resulting dictionary.
+                                    Defaults to True
+        @type include_inherited: True
         @return: Dicationary of fields
         @rtype: Dictionary from String to FieldDefition
         """
+        top_superclass = config_model.ConfigModelFactory.get_instance().DEFAULT_PARENT_CLASS_DESCRIPTOR;
+
         if include_built_in:
-            return self.__fields
+            fields = self.__fields
         else:
             def builtin_filter(item):
                 return not item[1].is_built_in()
             
             fields = filter(builtin_filter, self.__fields.items())
-            return dict(fields)
+            fields = dict(fields)
+        
+        if include_inherited and self.__parent_class_name != top_superclass:
+
+            graph = model_graph.ModelGraph.get_current_graph()
+            parent_defn = graph.get_class_definition(self.__parent_class_name)
+
+            new_fields = parent_defn.get_fields(include_built_in, include_inherited)
+
+            fields.update(new_fields)
+        
+        return fields
     
     def get_class(self):
         """
@@ -154,9 +171,7 @@ class ClassDefinition:
 
             python_fields = {}
 
-            filter_built_in = lambda x: not x in platform.get_built_in_field_names()
-
-            for field_name in filter(filter_built_in, self.get_fields()):
+            for field_name in self.get_fields(include_inherited=False, include_built_in=False):
                 python_fields[field_name] = self.__fields[field_name].get_field()
             
             class_factory = config_model.ConfigModelFactory.get_instance()
