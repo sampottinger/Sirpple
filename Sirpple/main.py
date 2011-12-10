@@ -5,6 +5,8 @@ import yamlmodels
 from page_builder import managers
 import importlib
 import re
+import traceback
+
 try:
     import test
 except ImportError:
@@ -47,7 +49,17 @@ class TestHandler(webapp2.RequestHandler):
         
         test_callable = getattr(module,test_name)
         
-        test_callable(self.response.out)
+        try:
+            result = test_callable(self.response.out)
+        except:
+            exc = traceback.format_exc()
+            print >>self.response.out, exc
+        else:
+            print >>self.response.out, module_name+'.'+test_name,'finished'
+            
+            if result != None:
+                print >>self.response.out, 'result:'
+                print >>self.response.out, result
 
 class AppHandler(webapp2.RequestHandler):
 
