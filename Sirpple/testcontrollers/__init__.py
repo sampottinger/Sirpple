@@ -2,6 +2,7 @@
 
 import importlib
 import traceback
+import sys
 
 try:
     import test
@@ -9,6 +10,7 @@ except ImportError:
     test = None
 
 class TestDriver(object):
+    
     def run_test(self, module_name, test_name, response_out):
         
         if not test:
@@ -35,14 +37,19 @@ class TestDriver(object):
         
         test_callable = getattr(module,test_name)
         
+        stdout = sys.stdout
+        sys.stdout = response_out
+        
         try:
             result = test_callable(response_out)
         except:
             exc = traceback.format_exc()
-            print >>response_out, exc
+            print exc
         else:
-            print >>response_out, module_name+'.'+test_name,'finished'
+            print module_name+'.'+test_name,'finished'
             
             if result != None:
-                print >>response_out, 'result:'
-                print >>response_out, result
+                print 'result:'
+                print result
+        
+        sys.stdout = stdout
