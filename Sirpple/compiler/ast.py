@@ -65,6 +65,14 @@ class NodeFactory:
         for field_defn in class_definition.get_fields().values():
             node_fields[field_defn.get_name()] = self.__create_tree_representation(target_model, field_defn)
         
+        for class_defn,models in self.__graph.get_children(target_model).items():
+            
+            collection_name = self.get_collection_name(class_defn.get_name())
+            
+            collection = [self.create_tree(model) for model in models]
+            
+            node_fields[collection_name] = collection
+        
         return Node(**node_fields)
     
     def __create_tree_representation(self, target_model, field_definition):
@@ -84,19 +92,11 @@ class NodeFactory:
 
         # Make node for pointer or collection
         if field_type.is_reference():
-
-            field_name = field_definition.get_name()
-
-            # Check to see if it should become a collection
-            if field_name in self.__collection_types:
-                collection = []
-                for child_model in graph.get_children(target_model):
-                    collection.append(self.create_node(child_model))
-                return collection
             
-            # Otherwise save as pointer
-            else:
-                return self.create_tree(getattr(target_model, field_name))
+            field_name = field_definition.get_name()
+            
+            # save as pointer
+            return self.create_tree(getattr(target_model, field_name))
         
         # Get value for primitive
         else:   
