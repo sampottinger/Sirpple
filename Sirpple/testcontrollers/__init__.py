@@ -41,7 +41,7 @@ class TestDriver(object):
         sys.stdout = response_out
         
         try:
-            result = test_callable(response_out)
+            result = test_callable()
         except:
             exc = traceback.format_exc()
             print exc

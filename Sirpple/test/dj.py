@@ -41,7 +41,7 @@ def setup_db():
     if not projects.get():
         populate_db()
 
-def children(handler):
+def children():
 
     setup_db()
 
@@ -52,5 +52,5 @@ def children(handler):
     project = projects.get()
     
     children = model_graph.ModelGraph.get_current_graph().get_children(project)
-    print >>handler, 'Children test passed'
+    print 'Children test passed'
 
