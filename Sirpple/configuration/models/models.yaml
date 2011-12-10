@@ -49,7 +49,7 @@ Event:
 
 Project:
     name: String
-    starting_level: World
+    starting_world: World
 
 Membership:
     user: User
