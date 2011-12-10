@@ -4,6 +4,8 @@ import logging
 import webapp2
 from google.appengine.api import users
 from serialization import model_graph
+from serialization import dto
+from configparser import get_parser
 
 class GAEController(webapp2.RequestHandler):
 
@@ -13,6 +15,7 @@ class GAEController(webapp2.RequestHandler):
     INSTANCE_ID_PARAM = "id"
     PARENT_PARAM = "parent"
     ACTION_PARAM = "action"
+    DATA_PARAM = "payload"
 
     # TODO: These could pop out into a more generic controller
     NOT_ACCEPTABLE = 406 
@@ -100,6 +103,7 @@ class GAEIndexController(GAEController):
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Asked for index of " + target_class_name + " without specifying parent")
             return
+            return
         parent_id = int(parent_id_str)
         parent = parent_class.get_by_id(parent_id)
         
@@ -107,6 +111,7 @@ class GAEIndexController(GAEController):
         if not self.has_access(parent):
             self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
             logging.error(self.get_current_username() + " attempted unauthorized access to " + target_class_name)
+            return
 
         # Query for children
         query = Query(target_class)
@@ -127,11 +132,13 @@ class GAEIndividualGetController(GAEController):
         if target == None:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Asked for " + servicing_class_name + " but no ID was provided")
+            return
         
         # Check that the user is authorized
         if not self.has_access(target):
-             self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
+            self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
             logging.error(self.get_current_username() + " attempted unauthorized access to " + target_class_name)
+            return
         
         # Serialize and send back
         self.write_serialized_response(target)
@@ -151,6 +158,7 @@ class GAEModifyController(GAEController):
         if action == None:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Went to modify " + servicing_class_name + " without specifying action")
+            return
 
         # Route accordingly
         if action == GAEModifyController.DELETE_ACTION:
@@ -162,12 +170,47 @@ class GAEModifyController(GAEController):
         else:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Went to modify " + servicing_class_name + " but given invalid action " + action)
+            return
     
     def __do_delete(self):
-        pass
-    
-    def __do_post(self):
-        pass
+        
+        target = self.get_target_instance_by_id()
+
+        # Check that the user is authorized
+        if not self.has_access(target):
+            self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
+            logging.error(self.get_current_username() + " attempted unauthorized access to " + target_class_name)
+            return
+        
+        target.delete()
     
     def __do_put(self):
-        pass
+
+        arguments = self.arguments()
+        
+        target = self.get_target_instance_by_id()
+
+        # Check that the user is authorized
+        if not self.has_access(target):
+            self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
+            logging.error(self.get_current_username() + " attempted unauthorized access to " + target_class_name)
+            return
+        
+        # Get the payload
+        if not GAEController.DATA_PARAM in arguments:
+            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
+            logging.error("Went to modify " + servicing_class_name + " but no payload provided")
+            return
+        payload = self.get(GAEController.DATA_PARAM)
+        
+        # Load it into target
+        dto_builder = dto.DTOBuilder.get_instance()
+        parser = get_parser("json")
+        payload_parsed = parser.loads(parser)
+        dto_builder.read_dto(payload_parsed, self.get_target_class_definition(), target=target)
+
+        # Save
+        target.put()
+
+        # Render out new state
+        return self.write_serialized_response(target)
