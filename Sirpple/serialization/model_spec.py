@@ -159,11 +159,6 @@ class ClassDefinition:
             for field_name in filter(filter_built_in, self.get_fields()):
                 python_fields[field_name] = self.__fields[field_name].get_field()
             
-            print ""
-            print self.__name
-            print python_fields
-            print ""
-            
             class_factory = config_model.ConfigModelFactory.get_instance()
 
             parent_class = class_factory.get_model(self.__parent_class_name)
