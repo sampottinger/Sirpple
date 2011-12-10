@@ -3,8 +3,10 @@
 import webapp2
 import yamlmodels
 from page_builder import managers
-import test
-
+try:
+    import test
+except:
+    test = None
 models = yamlmodels.load()
 
 class MainHandler(webapp2.RequestHandler):
@@ -14,6 +16,11 @@ class MainHandler(webapp2.RequestHandler):
 class TestHandler(webapp2.RequestHandler):
     def get(self):
         self.response.headers['Content-Type'] = 'text/plain'
+        
+        if not test:
+            print >>self.response.out, "No test module found"
+            return
+        
         module_name = self.request.get('module')
         test_name = self.request.get('test')
         
