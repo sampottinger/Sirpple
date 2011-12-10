@@ -5,6 +5,7 @@ import webapp2
 from google.appengine.api import users
 from serialization import model_graph
 from serialization import dto
+from backends import platform_manager
 from configparser import get_parser
 
 class GAEController(webapp2.RequestHandler):
@@ -27,7 +28,7 @@ class GAEController(webapp2.RequestHandler):
         
         self.__target_class_defn = graph.get_class_definition(self.__target_class_name)
         self.__uac_checker = platform_manager.PlatformManager.get_instance().get_uac_checker()
-    
+
     def write_serialized_response(self, target):
         """
         Write out target as a serialized object to response
@@ -44,17 +45,10 @@ class GAEController(webapp2.RequestHandler):
         @param target: The target object to load
         @type target: Instance of model from class loaded from config file
         """
-        pass
-    
-    def get_by_id(self, class_name, target_id):
-        """ Gets the instance of the given class by id
-
-        @param target_class The class to look for the given instance in
-        @type target_class: Name of the class to look for
-        @param target_id: The id of the instance to look for
-        @type target_id: int
-        """
-        pass
+        current_user = users.get_current_user()
+        platform = platform_manager.PlatformManager.get_instance()
+        checker = platform.get_uac_checker()
+        return checker.is_authorized(target, current_user)
     
     def get_current_username(self):
         """
@@ -63,7 +57,8 @@ class GAEController(webapp2.RequestHandler):
         @return: Unique username to the current request's sender
         @rtype: String
         """
-        pass
+        adapted_user = platform.get_adapted_user(users.get_current_user())
+        return adapted_user.get_username()
     
     def get_target_class_definition(self):
         """
@@ -81,7 +76,13 @@ class GAEController(webapp2.RequestHandler):
         @return: Target instance or None if id not specified
         @rtype: Instance of the class this handler services
         """ 
-        pass
+        if not GAEController.INSTANCE_ID_PARAM in self.arguments():
+            return None
+
+        target_id = int(self.get(GAEController.INSTANCE_ID_PARAM))
+
+        target_class = self.__target_class_defn.get_class()
+        return target_class.get_by_id(target_id)
 
 class GAEIndexController(GAEController):
     """ Google App Engine handler for listing objects """
@@ -171,6 +172,10 @@ class GAEModifyController(GAEController):
     def __do_delete(self):
         
         target = self.get_target_instance_by_id()
+        if target == None:
+            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
+            logging.error("Asked for " + servicing_class_name + " but no ID was provided")
+            return
 
         # Check that the user is authorized
         if not self.has_access(target):
@@ -185,6 +190,10 @@ class GAEModifyController(GAEController):
         arguments = self.arguments()
         
         target = self.get_target_instance_by_id()
+        if target == None:
+            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
+            logging.error("Asked for " + servicing_class_name + " but no ID was provided")
+            return
 
         # Check that the user is authorized
         if not self.has_access(target):
