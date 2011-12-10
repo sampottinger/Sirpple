@@ -5,6 +5,7 @@ Module that abstracts away the backend database / framework
 from uac import uac_checker
 from serialization import adapted_models
 from serialization import model_spec
+import user_adapter
 
 try:
     from google.appengine.ext import db
@@ -101,6 +102,18 @@ class PlatformManager:
         """
         # TODO: Switch on backend
         return uac_checker.GAEUACChecker.get_instance()
+    
+    def get_adapted_user(self, target):
+        """
+        Wraps the given db-specific user in an adapter
+
+        @param target: DB-specific user construct
+        @type target: DB-specific user instance
+        @return: Adapter that conforms to user_adapter.UserAdapter
+        @rtype: UserAdapater subclass instance
+        """
+        # TODO: Switch on backend
+        return user_adapter.GAEUserAdapter(target)
 
 class PropertyDefinitionFactory:
     """
