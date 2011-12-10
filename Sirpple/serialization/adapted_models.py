@@ -36,3 +36,13 @@ class GAEAdaptedModel(db.Model):
         # TODO: Ensure only immediate children
 
         return query
+    
+    def get_id(self):
+        """
+        Get model specific id global to the application
+
+        @note: This id is only guaranteed to be unqiue for a single model class
+        @return: The numerical id of this instance
+        @rtype: int
+        """
+        return self.key().id()
