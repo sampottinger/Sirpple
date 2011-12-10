@@ -36,7 +36,9 @@ class GAEController(webapp2.RequestHandler):
         @param target: The object or list of objects to serialize
         @type target: Model instance from class loaded from config file
         """
-        pass
+        target_dto = dto.DTOBuilder.create_dto(target)
+        serializer = get_parser("json")
+        self.response.out.write(serializer.dumps(target))
     
     def has_access(self, target):
         """

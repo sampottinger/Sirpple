@@ -18,6 +18,17 @@ class ParserAdapter:
         @type extension: String
         """
         self.extension = extension
+    
+    def dumps(self, target):
+        """
+        Dumps the serializable object target into this parser's supported format
+
+        @param target: The target to serialize
+        @type target: Seriazliable class instance
+        @return: String formatted in this parser's format
+        @rtype: String
+        """
+        raise NotImplementedError("Need to use subclass of this interface")
 
     def loads(self, source):
         """
@@ -66,15 +77,10 @@ class YamlAdapter(ParserAdapter):
         ParserAdapter.__init__(self, extension='yaml')
     
     def loads(self, source):
-        """
-        Loads the data saved in the provided string
-
-        @param source: The string to load form
-        @type source: String
-        @return: Dictionary loaded from string
-        @rtype: Dictionary
-        """
         return pyyaml.load(source)
+    
+    def dumps(self, target):
+        return pyyaml.dump(target)
 
 class JSONAdapater(ParserAdapter):
     """ Adapts the built in JSON parser / serializer to the generic parser interface """
@@ -84,6 +90,9 @@ class JSONAdapater(ParserAdapter):
     
     def loads(self, source):
         return json.loads(source)
+    
+    def dumps(self, source):
+        return json.dumps(source)
 
 __parsers = {'yaml' : YamlAdapter(),
              'json' : JSONAdapter()}
