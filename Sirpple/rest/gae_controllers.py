@@ -103,7 +103,6 @@ class GAEIndexController(GAEController):
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Asked for index of " + target_class_name + " without specifying parent")
             return
-            return
         parent_id = int(parent_id_str)
         parent = parent_class.get_by_id(parent_id)
         
@@ -147,7 +146,6 @@ class GAEModifyController(GAEController):
     """ Handler for a DELETE, POST, or PUT on a resource """
 
     DELETE_ACTION = "delete"
-    POST_ACTION = "post"
     PUT_ACTION = "put"
 
     def post(self):
@@ -163,10 +161,8 @@ class GAEModifyController(GAEController):
         # Route accordingly
         if action == GAEModifyController.DELETE_ACTION:
             self.__do_delete()
-        elif action == GAEModifyController.POST_ACTION:
-            self.__do_post()
         elif action == GAEModifyController.PUT_ACTION:
-            self.__do_post()
+            self.__do_put()
         else:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Went to modify " + servicing_class_name + " but given invalid action " + action)
@@ -213,4 +209,38 @@ class GAEModifyController(GAEController):
         target.put()
 
         # Render out new state
-        return self.write_serialized_response(target)
+        self.write_serialized_response(target)
+
+class GAECreateController(GAEController):
+    """ Handler for a POST request on a resource """
+
+    def post(self):
+        """ Creates a new resource on the server """
+        target_class_name = self.get_target_class_definition().get_name()
+
+        # Get the payload
+        if not GAEController.DATA_PARAM in arguments:
+            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
+            logging.error("Went to build " + servicing_class_name + " but no payload provided")
+            return
+        payload = self.get(GAEController.DATA_PARAM)
+
+        # Decode payload
+        # TODO: not a fan of straight get_parser
+        payload_parsed = get_parser("json").loads(payload)
+
+        # Build new instance
+        builder = dto.DTOBuilder.get_instance().create_dto(payload)
+        new_instance = builder.read_dto(payload_parsed)
+        
+        # Check that the user is authorized
+        if not self.has_access(new_instance.get_parent()):
+            self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
+            logging.error(self.get_current_username() + " attempted unauthorized access to get parent for a " + target_class_name)
+            return
+        
+        # Save
+        new_instance.put()
+
+        # Build new object
+        self.write_serialized_response(new_instance)
