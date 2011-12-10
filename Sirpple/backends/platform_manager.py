@@ -114,16 +114,6 @@ class PlatformManager:
         """
         # TODO: Switch on backend
         return user_adapter.GAEUserAdapter(target)
-    
-    def get_toplevel_uac_facade(self):
-        """
-        Gets the db-specific toplevel model user access control facade
-
-        @return: DB-specific toplevel model UAC checker
-        @rtype: Implementor of ToplevelUACFacade
-        """
-        # TODO: Switch on backend
-        return toplevel_uac.GAEToplevelUACFacade.get_instance()
 
 class PropertyDefinitionFactory:
     """

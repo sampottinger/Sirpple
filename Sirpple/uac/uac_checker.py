@@ -4,6 +4,8 @@ Module containing logic to check that a user is authorized to view / edit an ent
 
 # TODO: Factory currently sitting in backends.platform_manager.PlatformManager
 
+import toplevel_uac
+
 class UACChecker:
     """
     High level strategy interface to check to see if a user can view / edit a model instance
@@ -30,6 +32,9 @@ class GAEUACChecker(UACChecker):
 
     __instance = None
 
+    def __init__(self):
+        UACChecker.__init__(self)
+
     @classmethod
     def get_instance(self):
         """
@@ -44,5 +49,9 @@ class GAEUACChecker(UACChecker):
         return GAEUACChecker.__instance
     
     def is_authorized(self, target, user):
-        return True # TODO: After authentication, this ought to be filled in
-        # NOTE: user or target might be null
+
+        while target.get_parent() != None:
+            target = target.get_parent()
+        
+        toplevel_facade = toplevel_uac.GAEToplevelUACFacade.get_instance()
+        return toplevel_facade.is_authorized(target, user)

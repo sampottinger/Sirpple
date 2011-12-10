@@ -36,3 +36,12 @@ class GAEAdaptedModel(db.Model):
         # TODO: Ensure only immediate children
 
         return query
+    
+    def get_parent(self):
+        """
+        Get this model's "parent model"
+
+        @return: This instance's parent as indicated in the database
+        @rtype: Model instance
+        """
+        return self.parent()
