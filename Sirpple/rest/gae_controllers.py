@@ -12,6 +12,7 @@ class GAEController(webapp2.RequestHandler):
     PROJECT_ID_PARAM = "project_id"
     INSTANCE_ID_PARAM = "id"
     PARENT_PARAM = "parent"
+    ACTION_PARAM = "action"
 
     # TODO: These could pop out into a more generic controller
     NOT_ACCEPTABLE = 406 
@@ -138,5 +139,35 @@ class GAEIndividualGetController(GAEController):
 class GAEModifyController(GAEController):
     """ Handler for a DELETE, POST, or PUT on a resource """
 
+    DELETE_ACTION = "delete"
+    POST_ACTION = "post"
+    PUT_ACTION = "put"
+
     def post(self):
+        servicing_class_name = self.get_class_definition().get_name()
+
+        # Determine desired action
+        action = self.get(GAEController.ACTION_PARAM)
+        if action == None:
+            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
+            logging.error("Went to modify " + servicing_class_name + " without specifying action")
+
+        # Route accordingly
+        if action == GAEModifyController.DELETE_ACTION:
+            self.__do_delete()
+        elif action == GAEModifyController.POST_ACTION:
+            self.__do_post()
+        elif action == GAEModifyController.PUT_ACTION:
+            self.__do_post()
+        else:
+            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
+            logging.error("Went to modify " + servicing_class_name + " but given invalid action " + action)
+    
+    def __do_delete(self):
+        pass
+    
+    def __do_post(self):
+        pass
+    
+    def __do_put(self):
         pass
