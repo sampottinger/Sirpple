@@ -1,8 +1,8 @@
 """ Mechanisms for supporting data transfer objects """
 
 import logging
-from serialization import type_converters
-from serialization import model_graph
+import type_converters
+import model_graph
 
 class DTOBuilder:
     """ Builder that produces and reads data transfer objects """

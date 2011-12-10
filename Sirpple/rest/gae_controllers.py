@@ -4,8 +4,13 @@ import logging
 import webapp2
 from google.appengine.api import users
 from google.appengine.ext.db import Query
+<<<<<<< HEAD
 from ..serialization import config_model
 from ..backends import platform_manager
+=======
+from serialization import config_model
+from serialization import backends
+>>>>>>> master
 
 class GAEController(webapp2.RequestHandler):
 

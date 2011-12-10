@@ -5,7 +5,6 @@ from glob import glob
 import os
 import logging
 from backends import platform_manager
-
 from configparser import get_parser
 import model_spec
 import config_model
@@ -159,7 +158,7 @@ class ClassDefinitionFactory:
         
         # Construct fields
         field_factory = FieldDefinitionFactory.get_instance()
-        fields = field_factory.get_fields(source, True)
+        fields = field_factory.get_fields(source)
 
         name_parts = full_name.split(".")
         if len(name_parts) == 2:
@@ -171,10 +170,10 @@ class ClassDefinitionFactory:
         class_factory = config_model.ConfigModelFactory.get_instance()
 
         # Get parent field definition
-        if model_spec.ClassDefinition.DEFAULT_PARENT_FIELD in fields:
-            parent_field = fields[model_spec.ClassDefinition.DEFAULT_PARENT_FIELD]
-        else:
+        if not model_spec.ClassDefinition.DEFAULT_PARENT_FIELD in fields:
             parent_field = None
+        else:
+            parent_field = fields[model_spec.ClassDefinition.DEFAULT_PARENT_FIELD]
 
         return model_spec.ClassDefinition(name, fields, parent_class_name, parent_field)
     
