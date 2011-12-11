@@ -20,6 +20,7 @@ class GAEController(webapp2.RequestHandler):
 
     # TODO: These could pop out into a more generic controller
     NOT_ACCEPTABLE = 406 
+    UNAUTHORIZED = 401
 
     def __init__(self, target_class, *args, **kwargs):
         webapp2.RequestHandler.__init__(self, *args, **kwargs)    
@@ -123,8 +124,11 @@ class GAEIndexController(GAEController):
         results = list(query)
         self.write_serialized_response(results)
 
-class GAEIndividualGetController(GAEController):
-    """ Handler for a GET request on a specific instance """
+class GAEIndividualController(GAEController):
+    """ Handler for a GET, DELETE, and PUT request on a specific instance """
+    
+    DELETE_ACTION = "delete"
+    PUT_ACTION = "put"
 
     def get(self):
         servicing_class_name = self.get_class_definition().get_name()
@@ -145,12 +149,6 @@ class GAEIndividualGetController(GAEController):
         # Serialize and send back
         self.write_serialized_response(target)
 
-class GAEModifyController(GAEController):
-    """ Handler for a DELETE, POST, or PUT on a resource """
-
-    DELETE_ACTION = "delete"
-    PUT_ACTION = "put"
-
     def post(self):
         servicing_class_name = self.get_class_definition().get_name()
 
@@ -162,9 +160,9 @@ class GAEModifyController(GAEController):
             return
 
         # Route accordingly
-        if action == GAEModifyController.DELETE_ACTION:
+        if action == GAEIndividualController.DELETE_ACTION:
             self.__do_delete()
-        elif action == GAEModifyController.PUT_ACTION:
+        elif action == GAEIndividualController.PUT_ACTION:
             self.__do_put()
         else:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
