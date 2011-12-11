@@ -6,6 +6,7 @@ from serialization.config_model import ConfigModelFactory
 from serialization import model_graph
 from google.appengine.ext.db import Query
 from compiler import ast
+from compiler import Compiler
 
 import yamlmodels
 
@@ -64,8 +65,6 @@ def compiler():
     projects = project_model.all()
     project = projects.get()
     
-    factory = ast.NodeFactory.get_instance()
-    
-    tree = factory.create_tree(project)
-    print tree
+    output = Compiler().compile(project)
+    print output
 
