@@ -42,6 +42,9 @@ class NodeFactory:
         name = ''.join([c if c.islower() else '_'+c.lower() for c in name])
         return name.lstrip('_')+'s'
     
+    def clear_node_cache(self):
+        self.__node_cache = {}
+    
     # TODO: Remove this if no longer necessary
     def create_class_tree(self, target_model):
         """
