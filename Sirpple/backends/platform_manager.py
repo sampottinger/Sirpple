@@ -5,6 +5,7 @@ Module that abstracts away the backend database / framework
 from uac import uac_checker
 from serialization import adapted_models
 from serialization import model_spec
+from rest import controller_generator
 import user_adapters
 
 try:
@@ -143,6 +144,16 @@ class PlatformManager:
         """
         # TODO: This method should be phased out
         return "parent"
+    
+    def get_controller_generator(self):
+        """
+        Gets the db-specific controller generator used to build controllers for REST
+
+        @return: Generator for a REST API
+        @rtype: ControllerGenerator subclass
+        """
+        # TODO: This method should switch on db
+        return controller_generator.GAEControllerGenerator.get_instance()
 
 class PropertyDefinitionFactory:
     """

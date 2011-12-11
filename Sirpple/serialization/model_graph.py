@@ -33,6 +33,15 @@ class ModelGraph:
         self.__factory = factory
         self.__field_relationship_cache = {}
     
+    def get_class_definitions(self):
+        """
+        Returns a list of all of the class definitions currently in use in this graph
+
+        @return: List of model class definitions currently in use
+        @rtype: List of ClassDefinition
+        """
+        return self.__factory.get_class_definitions()
+    
     def get_class_definition(self, class_name):
         """
         Gets the definition of a class as loaded from a config file

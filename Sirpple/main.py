@@ -4,6 +4,7 @@ import webapp2
 import yamlmodels
 from page_builder import managers
 import re
+import backends
 import testcontrollers
 
 models = yamlmodels.load()
@@ -31,9 +32,17 @@ class AppHandler(webapp2.RequestHandler):
         composite_template_manager = managers.PageManager.get_instance()
         self.response.out.write(composite_template_manager.render(AppHandler.APP_TEMPLATE))
 
-app = webapp2.WSGIApplication([('/', MainHandler),
-                                ('/test', TestHandler),
-                                ('/app', AppHandler)], debug=True)
+platform = backends.platform_manager.PlatformManager.get_instance()
+generator = platform.get_controller_generator()
+rest_controllers = generator.build_all_interfaces()
+
+controllers = [('/', MainHandler),
+               ('/test', TestHandler),
+               ('/app', AppHandler)]
+
+controllers.extend(rest_controllers)
+
+app = webapp2.WSGIApplication(controllers, debug=True)
 
 
 if __name__ == '__main__':

@@ -3,6 +3,7 @@ Module contiaining logic to build the REST controllers from config files
 """
 
 import gae_controllers
+from serialization import model_graph
 
 class ControllerGenerator:
     """ Abstract class for db-specific REST API builders """
@@ -32,13 +33,39 @@ class ControllerGenerator:
         """
         handlers = []
 
-        for definition in class_definitions:
+        for definition in class_definitions.values():
             handlers.extend(self.build_interface(definition))
         
         return handlers
+    
+    # TODO: Not sure if this should be here
+    def build_all_interfaces(self):
+        """
+        Builds all the interfaces for the current model graph
+
+        @return: List of tuples of URL patterns and the controller
+        @rtype: List of (url pattern, db specific handler / controller)
+        """
+        graph = model_graph.ModelGraph.get_current_graph()
+        return self.build_interfaces(graph.get_class_definitions())
 
 class GAEControllerGenerator(ControllerGenerator):
     """ Generator of Google App Engine controllers """
+
+    __instance = None
+
+    @classmethod
+    def get_instance(self):
+        """
+        Get a shared instance of this GAEControllerGenerator singleton
+
+        @return: Shared GAEControllerGenerator instance
+        @rtype: GAEControllerGenerator
+        """
+        if GAEControllerGenerator.__instance == None:
+            GAEControllerGenerator.__instance = GAEControllerGenerator()
+        
+        return GAEControllerGenerator.__instance
 
     def __init__(self):
         ControllerGenerator.__init__(self)
@@ -50,19 +77,16 @@ class GAEControllerGenerator(ControllerGenerator):
         # Get name
         name = class_definition.get_name().lower()
 
-        # Get actuall class
-        target_class = class_definition.get_class()
-
         # Build index controller
-        index_controller = gae_controllers.GAEIndexController(target_class)
+        index_controller = gae_controllers.GAEIndexController(class_definition)
         handlers.append(("\/project\/(\d+)\/" + name + "s", index_controller))
 
         # Build individual controller
-        individual_controller = gae_controllers.GAEIndividualGetController(target_class)
+        individual_controller = gae_controllers.GAEIndividualController(class_definition)
         handlers.append(("\/" + name + "\/(\d+)", individual_controller))
 
         # Build creation controller
-        creation_controller = gae_controllers.GAECreateController(target_class)
+        creation_controller = gae_controllers.GAECreateController(class_definition)
         handlers.append(("\/project\/(\d+)\/" + name, creation_controller))
 
         return handlers

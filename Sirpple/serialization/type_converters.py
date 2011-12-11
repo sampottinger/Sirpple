@@ -2,7 +2,7 @@
 
 import cgi
 from serialization import model_graph
-from backends import platform_manager
+import backends
 
 class TypeConverter:
     """ Facade that converts a foreign value for a model field to a cleaned native value """
@@ -249,10 +249,10 @@ class UserReferenceConversionStrategy(TypeConversionStrategy):
         return StringConversionStrategy.__instance
 
     def convert_from_dto(self, value):
-        platform = platform_manager.PlatformManager.get_instance()
+        platform = backends.platform_manager.PlatformManager.get_instance()
         wrapped_user = platform.get_adapted_user(value)
         return wrapped_user.get_username()
     
     def convert_for_dto(self, value):
-        platform = platform_manager.PlatformManager.get_instance()
+        platform = backends.platform_manager.PlatformManager.get_instance()
         return platform.get_adapted_user_class().get_by_username(value)

@@ -5,7 +5,7 @@ import webapp2
 from google.appengine.api import users
 from serialization import model_graph
 from serialization import dto
-from backends import platform_manager
+import backends
 from configparser import get_parser
 
 class GAEController(webapp2.RequestHandler):
@@ -22,13 +22,17 @@ class GAEController(webapp2.RequestHandler):
     NOT_ACCEPTABLE = 406 
     UNAUTHORIZED = 401
 
+    __instance = None
+
     def __init__(self, target_class, *args, **kwargs):
-        webapp2.RequestHandler.__init__(self, *args, **kwargs)    
+        webapp2.RequestHandler.__init__(self, *args, **kwargs)
+        
+        self.__target_class_name = target_class.get_name()   
         
         graph = model_graph.ModelGraph.get_current_graph()
-        
-        self.__target_class_defn = graph.get_class_definition(self.__target_class_name)
-        self.__uac_checker = platform_manager.PlatformManager.get_instance().get_uac_checker()
+
+        self.__target_class_defn = target_class
+        self.__uac_checker = backends.platform_manager.PlatformManager.get_instance().get_uac_checker()
 
     def write_serialized_response(self, target):
         """
@@ -49,7 +53,7 @@ class GAEController(webapp2.RequestHandler):
         @type target: Instance of model from class loaded from config file
         """
         current_user = users.get_current_user()
-        platform = platform_manager.PlatformManager.get_instance()
+        platform = backends.platform_manager.PlatformManager.get_instance()
         checker = platform.get_uac_checker()
         return checker.is_authorized(target, current_user)
     
@@ -91,7 +95,7 @@ class GAEIndexController(GAEController):
     """ Google App Engine handler for listing objects """
 
     def __init__(self, target_class, *args, **kwargs):
-        GAEController.__init__(target_class, *args, **kwargs)
+        GAEController.__init__(self,target_class, *args, **kwargs)
     
     def get(self):
         graph = model_graph.ModelGraph.get_current_graph()
