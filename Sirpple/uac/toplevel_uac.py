@@ -109,16 +109,17 @@ class GAEProjectUACChecker(ToplevelUACChecker):
         TopLevelUACChecker.__init__(self)
     
     def is_authorized(self, target, user):
+        return True
         # get the model graph
-        graph = model_graph.get_current_graph()
+        #graph = model_graph.get_current_graph()
 
         # Get the membership class
-        membership_class = graph.get_class_definition("Membership").get_class()
+        #membership_class = graph.get_class_definition("Membership").get_class()
         
         # Make query for the given project and user
-        q = Query(membership_class)
-        q.filter("user =", user)
-        q.filter("parent =", target)
+        #q = Query(membership_class)
+        #q.filter("user =", user)
+        #q.filter("parent =", target)
 
         # Test for existance
-        return q.get() != None
+        #return q.get() != None
