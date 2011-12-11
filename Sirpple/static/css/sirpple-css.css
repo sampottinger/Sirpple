@@ -1,0 +1,10 @@
+/* Overall Positioning of UI */
+
+html {width:100%; height:100%; }
+
+body { min-width:1200px; min-height:800px; }
+
+.left { height:100% !important; width:300px; display:block; float:left }
+.right { height:100% !important; width:300px; display:block; float:right}
+
+.accordion { height:90% }
