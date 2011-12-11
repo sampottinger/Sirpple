@@ -74,12 +74,13 @@ class GAEControllerGenerator(ControllerGenerator):
         
         handlers = []
 
-        # Get name
+        # Get names
         name = class_definition.get_name().lower()
+        parent_name = class_definition.get_parent_class_name()
 
         # Build index controller
         index_controller = gae_controllers.GAEIndexController(class_definition)
-        handlers.append(("\/project\/(\d+)\/" + name + "s", index_controller))
+        handlers.append(("\/" + parent_name + "\/(\d+)\/" + name + "s", index_controller))
 
         # Build individual controller
         individual_controller = gae_controllers.GAEIndividualController(class_definition)

@@ -188,6 +188,16 @@ class ClassDefinition:
         @rtype: FieldDefinition
         """
         return self.__parent_field
+    
+    def get_parent_class_name(self):
+        """
+        Gets the name of the parent of this class
+
+        @return: The name of the parent of this class or Null if no
+                 parent
+        @rtype: String
+        """
+        return self.__parent_class_name
 
 class WrappedClassDefinition(ClassDefinition):
     """
