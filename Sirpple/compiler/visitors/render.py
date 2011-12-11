@@ -12,13 +12,21 @@ def indent(string):
 class RenderVisitor(Visitor):
     
     def visit_Project(self, project):
-        body = ''
+        worlds = ''
         for world in project.worlds:
-            body += self.visit(world)
+            worlds += self.visit(world)
         
+        game_objs=''
         for game_obj in project.game_objects:
-            self.visit(game_obj)
-        return body
+            game_objs += self.visit(game_obj)
+        
+        project_context = {}
+        project_context['worlds'] = worlds
+        project_context['game_objects'] = game_objs
+        project_context['starting_world'] = project.starting_world.name
+        project_js = template.render('compiler/runtime/project.js', project_context)
+        
+        return project_js
     
     def visit_World(self, world):
         body = ''
