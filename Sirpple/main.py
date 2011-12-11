@@ -14,7 +14,9 @@ class MainHandler(webapp2.RequestHandler):
 
 class TestHandler(webapp2.RequestHandler):
     def get(self):
-        self.response.headers['Content-Type'] = 'text/plain'
+        content_type = self.request.get('format')
+        
+        self.response.headers['Content-Type'] = str(content_type) or 'text/plain'
         
         module_name = self.request.get('module')
         module_name = re.sub('\.+','.',module_name.lstrip('.'))
