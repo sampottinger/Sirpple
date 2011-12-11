@@ -2,7 +2,7 @@
 Classes containing structural information about models loaded from configuration files
 """
 
-from backends import platform_manager
+import backends
 import config_model
 import model_graph
 
@@ -86,7 +86,7 @@ class FieldDefinition:
         @return: True if this is built in or False otherwise
         @rtype: Boolean
         """
-        platform = platform_manager.PlatformManager.get_instance()
+        platform = backends.platform_manager.PlatformManager.get_instance()
         return self.get_name() in platform.get_built_in_field_names()
 
 class ClassDefinition:
@@ -165,8 +165,6 @@ class ClassDefinition:
         """
 
         if self.__class == None:
-
-            platform = platform_manager.PlatformManager.get_instance()
 
             python_fields = {}
 

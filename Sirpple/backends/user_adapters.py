@@ -1,7 +1,14 @@
 """ Adapter to the database user constructs """
 
+from google.appengine.api import users
+
 class UserAdapter:
     """ Adapter interface for database-specific user constructs """
+
+    @classmethod
+    def get_by_username(self, username):
+        """ Gets the user with the given unique username """
+        raise NotImplementedError("Must use implementor of this interface")
 
     def __init__(self):
         pass
@@ -15,8 +22,19 @@ class UserAdapter:
         """
         raise NotImplementedError("Must use implementor of this interface")
     
-class GAEUserAdapter(self):
+class GAEUserAdapter():
     """ Implementor of UserAdapter for Google App Engine's User class """
+
+    @classmethod
+    def get_by_username(self, username):
+        # Handle OpenID
+        if username.startswith("openid:"):
+            identifier = username.partition("openid:")[2]
+            return user.User(federated_identity=identifier)
+
+        # Handle regular
+        else:
+            return users.User(email = username)
 
     def __init__(self, target):
         """
@@ -33,8 +51,9 @@ class GAEUserAdapter(self):
 
         # If we are using OpenID
         if user_id == None:
-            return self.__inner_user.federated_identity()
+            identity = self.__inner_user.federated_identity()
+            return "openid:" + identity
 
         # If in normal authentication
         else:
-            return user_id
+            return self.__inner_user.email()

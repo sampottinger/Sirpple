@@ -15,15 +15,15 @@ class DTOBuilder:
     @classmethod
     def get_instance(self):
         """
-        Get a shared instance of this DTOFactory singleton
+        Get a shared instance of this DTOBuilder singleton
 
-        @return: Shared DTOFactory instance
-        @rtype: DTOFactory
+        @return: Shared DTOBuilder instance
+        @rtype: DTOBuilder
         """
-        if DTOFactory.__instance == None:
-            DTOFactory.__instance = DTOFactory()
+        if DTOBuilder.__instance == None:
+            DTOBuilder.__instance = DTOBuilder()
         
-        return DTOFactory.__instance
+        return DTOBuilder.__instance
     
     def create_dto(self, target):
         """
@@ -47,7 +47,7 @@ class DTOBuilder:
         ret_dict[DTOBuilder.CLASS_IDENTIFIER] = class_name
 
         # Handle basic attributes
-        for field in filter(lambda x: x.is_exposed(), class_definition.get_fields()):
+        for field in filter(lambda x: x.is_exposed(), class_definition.get_fields(include_built_in=True, include_inherited=True).values()):
             field_name = field.get_name()
             ret_dict[field_name] = getattr(target, field_name)
         
@@ -55,9 +55,15 @@ class DTOBuilder:
         children = graph.get_children(target)
         
         # Fill in the children instances
-        for defn, instance in children.items():
-            pointers = map(lambda x: converter.convert_for_dto(x.__class__.__name__, x))
-            ret_dict[DTOBuilder.CHILDREN_PREFIX + defn.get_name().lower()] = pointers
+        for children_class, children_set in children.items():
+            children_class_name = children_class.get_name()
+
+            if len(children_set) > 0:
+                pointers = map(lambda x: converter.convert_for_dto(x.__class__.__name__, x), children_set)
+            else:
+                pointers = []
+
+            ret_dict[DTOBuilder.CHILDREN_PREFIX + children_class_name.lower()] = pointers
         
         return ret_dict
     
@@ -75,12 +81,14 @@ class DTOBuilder:
         @return: Fully instantiated (but not saved)
         @rtype: Instance of the class class_defn represents or None on fail
         """
+        converter = type_converters.TypeConverter.get_instance()
 
         # TODO: Might the method of using a dict for attributes cause
         # issues for other backends?
 
         # Get actual class
-        target_class = class_defn.get_class()
+        target_class = class_definition.get_class()
+        class_name = class_definition.get_name()
 
         # Get field definitions from class defintion
         field_definitions = class_definition.get_fields()
@@ -93,21 +101,20 @@ class DTOBuilder:
             target_dict = {}
 
         # Clean and check for editing non-exposed fields
-        for foreign_field, foreign_value in source:
+        for foreign_field, foreign_value in source.items():
 
             # Check that the field is available
-            if not foriegn_field in field_definitions:
-                logging.error("Invalid field " + foreign_field + " passed to " + target_class.get_name())
-                return None
+            if not foreign_field in field_definitions:
+                continue
             
             # Check that the field is exposed
-            field_defintion = field_defintions[foreign_field]
+            field_definition = field_definitions[foreign_field]
             if not field_definition.is_exposed():
-                logging.error("Attempted to write non-exposed field " + field_defintion.get_name() + " for " + target_class.get_name() + " through REST API")
+                logging.error("Attempted to write non-exposed field " + field_defintion.get_name() + " for " + class_name + " through REST API")
             
             # Convert and clean
             type_name = field_definition.get_field_type_name()
-            new_value = converter.convert_from_dto(type_name, source)
+            new_value = converter.convert_from_dto(type_name, foreign_value)
         
             # If we are writing into an existing instance
             if target:
@@ -119,6 +126,6 @@ class DTOBuilder:
         
         # Create instance if necessary
         if target == None:
-            return target_class(target_dict) # TODO: Non-GAE / Django backends?
+            return target_class(**target_dict) # TODO: Non-GAE / Django backends?
         else:
             return target

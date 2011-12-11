@@ -6,7 +6,6 @@ objects that do not have parents (top level objects)
 """
 
 from serialization import model_graph
-from backends import platform_manager
 
 from google.appengine.ext.db import Query
 
@@ -30,7 +29,7 @@ class ToplevelUACFacade:
 class GAEToplevelUACFacade:
     """ Facade to check that a user has access to a toplevel object """
 
-     __instance = None
+    __instance = None
 
     @classmethod
     def get_instance(self):
@@ -88,7 +87,7 @@ class ToplevelUACChecker:
         """
         raise NotImplementedError("Must use implementor of this interface")
     
-class GAEProjectUACChecker(TopLevelUACChecker):
+class GAEProjectUACChecker(ToplevelUACChecker):
     """ Implementor of ToplevelUACChecker for checking projects """
 
     __instance = None

@@ -2,6 +2,7 @@
 
 import cgi
 from serialization import model_graph
+from backends import platform_manager
 
 class TypeConverter:
     """ Facade that converts a foreign value for a model field to a cleaned native value """
@@ -23,7 +24,8 @@ class TypeConverter:
 
     def __init__(self):
         """ Constructor that loads strategies for this TypeConverter """
-        self.__conversion_strategies = {"String": StringConversionStrategy,
+        self.__conversion_strategies = {"Text": TextConversionStrategy,
+                                        "String": StringConversionStrategy,
                                         "Integer": IntegerConversionStrategy,
                                         "GameObject": SimpleReferenceConversionStrategy,
                                         "GameObjectMethod": SimpleReferenceConversionStrategy,
@@ -75,7 +77,7 @@ class TypeConverter:
         strategy = self.__conversion_strategies[type_name].get_instance()
         return strategy.convert_for_dto(value)
 
-class TypeConvserionStrategy:
+class TypeConversionStrategy:
     """ 
     Strategy interface for objects that convert between serializable and native values
 
@@ -109,7 +111,7 @@ class TypeConvserionStrategy:
         """
         raise NotImplementedError("Must use implementor of this interface")
 
-class SimpleReferenceConversionStrategy(TypeConvserionStrategy):
+class SimpleReferenceConversionStrategy(TypeConversionStrategy):
     """ 
     Strategy for converting simple reference properties
 
@@ -159,6 +161,21 @@ class SimpleReferenceConversionStrategy(TypeConvserionStrategy):
 class IntegerConversionStrategy(TypeConversionStrategy):
     """ Strategy that converts integer primitives """
 
+    __instance = None
+
+    @classmethod
+    def get_instance(self):
+        """
+        Get a shared instance of this IntegerConvserionStrategy singleton
+
+        @return: Shared IntegerConvserionStrategy instance
+        @rtype: IntegerConvserionStrategy
+        """
+        if IntegerConvserionStrategy.__instance == None:
+            IntegerConvserionStrategy.__instance = IntegerConvserionStrategy()
+        
+        return IntegerConvserionStrategy.__instance
+
     def convert_from_dto(self, value):
         return int(value)
     
@@ -168,17 +185,74 @@ class IntegerConversionStrategy(TypeConversionStrategy):
 class StringConversionStrategy(TypeConversionStrategy):
     """ Strategy for string conversion with cleaning for security """
 
+    __instance = None
+
+    @classmethod
+    def get_instance(self):
+        """
+        Get a shared instance of this StringConversionStrategy singleton
+
+        @return: Shared StringConversionStrategy instance
+        @rtype: StringConversionStrategy
+        """
+        if StringConversionStrategy.__instance == None:
+            StringConversionStrategy.__instance = StringConversionStrategy()
+        
+        return StringConversionStrategy.__instance
+
     def convert_from_dto(self, value):
         return cgi.escape(value)
     
     def convert_for_dto(self, value):
         return value
 
-class UserConversionStrategy(TypeConversionStrategy):
-    """ Strategy for converting db-specific user constructs """
+class TextConversionStrategy(TypeConversionStrategy):
+    """ Strategy for string conversion without cleaning (for code) """
+
+    __instance = None
+
+    @classmethod
+    def get_instance(self):
+        """
+        Get a shared instance of this TextConversionStrategy singleton
+
+        @return: Shared TextConversionStrategy instance
+        @rtype: TextConversionStrategy
+        """
+        if TextConversionStrategy.__instance == None:
+            TextConversionStrategy.__instance = TextConversionStrategy()
+        
+        return TextConversionStrategy.__instance
 
     def convert_from_dto(self, value):
-        pass
+        return cgi.escape(value, quote=False)
     
     def convert_for_dto(self, value):
-        pass
+        return value
+
+class UserReferenceConversionStrategy(TypeConversionStrategy):
+    """ Strategy for converting db-specific user constructs """
+
+    __instance = None
+
+    @classmethod
+    def get_instance(self):
+        """
+        Get a shared instance of this UserReferenceConversionStrategy singleton
+
+        @return: Shared UserReferenceConversionStrategy instance
+        @rtype: UserReferenceConversionStrategy
+        """
+        if UserReferenceConversionStrategy.__instance == None:
+            UserReferenceConversionStrategy.__instance = UserReferenceConversionStrategy()
+        
+        return StringConversionStrategy.__instance
+
+    def convert_from_dto(self, value):
+        platform = platform_manager.PlatformManager.get_instance()
+        wrapped_user = platform.get_adapted_user(value)
+        return wrapped_user.get_username()
+    
+    def convert_for_dto(self, value):
+        platform = platform_manager.PlatformManager.get_instance()
+        return platform.get_adapted_user_class().get_by_username(value)

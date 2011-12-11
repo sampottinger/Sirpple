@@ -5,7 +5,7 @@ Module that abstracts away the backend database / framework
 from uac import uac_checker
 from serialization import adapted_models
 from serialization import model_spec
-import user_adapter
+import user_adapters
 
 try:
     from google.appengine.ext import db
@@ -113,7 +113,36 @@ class PlatformManager:
         @rtype: UserAdapater subclass instance
         """
         # TODO: Switch on backend
-        return user_adapter.GAEUserAdapter(target)
+        return user_adapters.GAEUserAdapter(target)
+    
+    def get_adapated_user_class(self):
+        """
+        Determines the db-specific user adapter currently in use
+
+        @return: DB-specific user adapter
+        @rtype: UserAdapater subclass (not instance)
+        """
+        # TODO: Switch on backend
+        return user_adapters.GAEUserAdapater
+    
+    def get_built_in_field_names(self):
+        """
+        Gets a list of the db-specific field names that are built-in to the models clas
+
+        @return: List of built in field names
+        @rtype: List of String
+        """
+        return ["parent"]
+    
+    def get_parent_field_name(self):
+        """
+        Returns the db-specific field used to specify a model's parent
+
+        @return: Name of the field that encodes the parent pointer / reference
+        @rtype: String
+        """
+        # TODO: This method should be phased out
+        return "parent"
 
 class PropertyDefinitionFactory:
     """
@@ -193,12 +222,9 @@ class GAEReferencePropertyDefinition(model_spec.PropertyDefinition):
     """
 
     def get_property(self, field_name):
-        if self.is_built_in():
-            return None
-        else:
-            params = self.parameters
-            params["collection_name"] = field_name + "_collection"
-            return PlatformManager.get_instance().get_property_class(self.db_class_name, self.parameters)
+        params = self.parameters
+        params["collection_name"] = field_name + "_collection"
+        return PlatformManager.get_instance().get_property_class(self.db_class_name, self.parameters)
     
     def is_reference(self):
         return True

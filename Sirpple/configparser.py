@@ -82,7 +82,7 @@ class YamlAdapter(ParserAdapter):
     def dumps(self, target):
         return pyyaml.dump(target)
 
-class JSONAdapater(ParserAdapter):
+class JSONAdapter(ParserAdapter):
     """ Adapts the built in JSON parser / serializer to the generic parser interface """
 
     def __init__(self):
