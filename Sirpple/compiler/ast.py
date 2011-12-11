@@ -4,11 +4,17 @@ Set of classes to build an Abstract Syntax Tree for the game compiler
 from serialization import model_graph
 
 class Node(object):
-    def __init__(self, **kwargs):
+    def __init__(self, type_name, **kwargs):
+        self.__type_name = type_name
         self.__dict__.update(kwargs)
     
+    def get_type(self):
+        return self.__type_name
+    
     def __str__(self):
-        return repr(vars(self))
+        def is_public(item):
+            return not item[0].startswith('_'+self.__class__.__name__)
+        return repr(dict(filter(is_public,vars(self).items())))
     
     def __repr__(self):
         return str(self)
@@ -90,7 +96,7 @@ class NodeFactory:
             
             node_fields[collection_name] = collection
         
-        node = Node(**node_fields)
+        node = Node(class_name, **node_fields)
         self.__node_cache[cache_id] = node
         
         return node
