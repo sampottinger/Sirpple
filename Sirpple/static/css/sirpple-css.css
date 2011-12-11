@@ -4,7 +4,7 @@ html {width:100%; height:100%; }
 
 body { min-width:1200px; min-height:800px; }
 
-.left { height:100% !important; width:300px; display:block; float:left }
-.right { height:100% !important; width:300px; display:block; float:right}
-
+.left { height:800px !important; width:300px; float:left }
+.right { height:800px !important; width:300px; float:right}
+.pane {height:300px; overflow:auto;}
 .accordion { height:90% }

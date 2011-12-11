@@ -2,6 +2,7 @@
 
 $(document).ready(function() {
 
-	$( ".accordion" ).accordion( {'fillSpace':true} );
+	$( ".accordion" ).accordion({"autoHeight": false,
+			"navigation": true});
 
 });
