@@ -11,7 +11,7 @@ except ImportError:
 
 class TestDriver(object):
     
-    def run_test(self, module_name, test_name, response_out):
+    def run_test(self, module_name, test_name, response_out, request_dict):
         
         if not test:
             print >>response_out, "No test module found"
@@ -47,7 +47,7 @@ class TestDriver(object):
         sys.stdout = response_out
         
         try:
-            result = test_callable()
+            result = test_callable(**request_dict)
         except:
             exc = traceback.format_exc()
             print exc

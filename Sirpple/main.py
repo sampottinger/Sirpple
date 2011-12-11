@@ -18,12 +18,21 @@ class TestHandler(webapp2.RequestHandler):
         
         self.response.headers['Content-Type'] = str(content_type) or 'text/plain'
         
+        def string_convert(item):
+            return str(item[0]),item[1]
+            
+        request_dict = dict(map(string_convert, self.request.GET.items()))
+        
         module_name = self.request.get('module')
         module_name = re.sub('\.+','.',module_name.lstrip('.'))
         test_name = self.request.get('test')
         
+        for key in ['format','module','test']:
+            if key in request_dict:
+                del request_dict[key]
+        
         driver = testcontrollers.TestDriver()
-        driver.run_test(module_name, test_name, self.response.out)
+        driver.run_test(module_name, test_name, self.response.out, request_dict)
 
 class AppHandler(webapp2.RequestHandler):
 
