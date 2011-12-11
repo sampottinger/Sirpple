@@ -36,6 +36,7 @@ class NodeFactory:
     def __init__(self):
 
         self.__graph = model_graph.ModelGraph.get_current_graph()
+        self.__node_cache = {}
     
     def get_collection_name(self, name):
         name = ''.join([c if c.islower() else '_'+c.lower() for c in name])
@@ -63,8 +64,14 @@ class NodeFactory:
         @rtype: Node
         """
 
-        # Get class definition
         class_name = target_model.__class__.__name__
+        
+        cache_id = (class_name,target_model.get_id())
+        
+        if cache_id in self.__node_cache:
+            return self.__node_cache[cache_id]
+        
+        # Get class definition
         class_definition = self.__graph.get_class_definition(class_name)
 
         node_fields = {}
@@ -80,7 +87,10 @@ class NodeFactory:
             
             node_fields[collection_name] = collection
         
-        return Node(**node_fields)
+        node = Node(**node_fields)
+        self.__node_cache[cache_id] = node
+        
+        return node
     
     def __create_tree_representation(self, target_model, field_definition):
         """
