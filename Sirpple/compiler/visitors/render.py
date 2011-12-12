@@ -63,29 +63,40 @@ class RenderVisitor(Visitor):
     
     def render_js_class(self, obj, parent_class):
         body = ''
+        events={}
         for method in obj.methods:
-            method.is_constructor = method == obj.constructor
-            
-            method_txt = self.visit(method)
-            if method.is_constructor:
-                constructor_context={}
-                constructor_context['method'] = method_txt
-                constructor_context['child'] = obj.name
-                constructor_context['parent'] = parent_class
-                
-                body += template.render('compiler/runtime/constructor.js', constructor_context)
-            else:
-                body += obj.name +'.'+method_txt
+            if not method == obj.constructor:
+                method.is_constructor = False
+                method_txt,method_events = self.visit(method)
+                events[method.name] = method_events
+                body += obj.name +'.prototype.'+method_txt
+        
+        for method,event_list in events.items():
+            for event in event_list:
+                fields = (event.name,'this.'+method)
+                obj.constructor.body += '\ngoog.events.listen(eventManager, %sEvent, %s, false, this);'%fields
+        
+        obj.constructor.is_constructor = True
+        method_txt,_ = self.visit(obj.constructor)
+        
+        constructor_context={}
+        constructor_context['method'] = method_txt
+        constructor_context['child'] = obj.name
+        constructor_context['parent'] = parent_class
+        
+        body = template.render('compiler/runtime/constructor.js', constructor_context)+body
             
         return body
     
-    def visit_WorldMethod(self, method,**kwargs):
-        return self.visit_Method(method,**kwargs)
+    def visit_WorldMethod(self, method):
+        method.subscriptions = method.world_subscriptions
+        return self.visit_Method(method)
     
-    def visit_GameObjectMethod(self, method,**kwargs):
-        return self.visit_Method(method,**kwargs)
+    def visit_GameObjectMethod(self, method):
+        method.subscriptions = method.game_object_subscriptions
+        return self.visit_Method(method)
     
-    def visit_Method(self, method,):
+    def visit_Method(self, method):
         
         signature_dict = pyyaml.load(method.signature)
         args = ', '.join(map(str, signature_dict.keys()))
@@ -100,7 +111,8 @@ class RenderVisitor(Visitor):
                 body = 'goog.base(this)\n' + body
             method_context['body'] = indent(body)
         
-        return template.render('compiler/runtime/method.js', method_context)
+        events = [s.event for s in method.subscriptions]
+        return template.render('compiler/runtime/method.js', method_context), events
     
     def default_visit(self, target):
         print 'default visit', target
