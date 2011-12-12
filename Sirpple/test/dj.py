@@ -50,7 +50,7 @@ def populate_db():
     gcons.body_type='raw'
     gcons.body="""
         this.setSize(150,150);
-        this.setFill(0,0,150);
+        this.setFill("/static/images/brick.png");
         """
     gcons.put()
     
