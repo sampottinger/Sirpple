@@ -13,7 +13,12 @@ goog.require('lime.animation.Spawn');
 goog.require('lime.animation.FadeTo');
 goog.require('lime.animation.ScaleTo');
 goog.require('lime.animation.MoveTo');
+goog.require('goog.events.Event');
+goog.require('goog.events.EventTarget');
+
 {% autoescape off %}
+{{events}}
+
 {{worlds}}
 
 {{game_objects}}
@@ -26,6 +31,8 @@ project.start = function(){
     var world = new {{starting_world}}();
 
     scene.appendChild(world);
+    
+    {% autoescape off %}{{setup}}{% endautoescape %}
     
     director.makeMobileWebAppCapable();
     // set current scene active
