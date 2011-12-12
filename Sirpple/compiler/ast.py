@@ -122,7 +122,11 @@ class NodeFactory:
             field_name = field_definition.get_name()
             
             # save as pointer
-            return self.create_tree(getattr(target_model, field_name))
+            ref_model = getattr(target_model, field_name)
+            if ref_model:
+                return self.create_tree(ref_model)
+            else:
+                return None
         
         # Get value for primitive
         else:   
