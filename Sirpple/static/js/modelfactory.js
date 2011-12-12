@@ -5,37 +5,51 @@
 
 CLASS_SPECIFICATION_URL = "/configuration/models/models.yaml";
 
+window.modelFactory = null;
+
 /**
  * Factory to create new model gateways from YAML server
  * config files
 **/
-var ModelFactory = function()
+function ModelFactory(spec)
 {
     
-    /**
-     * Creates a new model factory that has all of the class
-     * definitions available
-     * @param {Function} readyFunction The function to call when this factory is ready
-    **/
-    this.waitingRequests = 1;
+    this.spec = spec;
+    this.gateways = {};
 
-    /**
-     * Save the class specification 
-    **/
-    this.loadClassSpecification = function(data, textStatus, jqXHR)
+    for(var fullName in spec)
     {
-        this.classSpecification = jsyaml.safeLoad(data);
-        alert(this.classSpecification);
-    };
+        if("parent" in spec[fullName])
+            parentName = spec[fullName]["parent"]
+        else if(".parent" in spec[fullName])
+            parentName = spec[fullName][".parent"]
+        else
+            parentName = "none"
+
+        parts = fullName.split(".")
+        if(parts.length == 1)
+            modelName = parts[0]
+        else
+            modelName = parts[1]
+        
+        this.gateways[modelName] = new ModelGateway(modelName, parentName);
+    }
 
     this.getModelGateway = function(name)
     {
-        
-    };
+        return this.gateways[name];
+    }
 
-    // Ask server for model definitions
-    $.ajax({
-        url: CLASS_SPECIFICATION_URL,
-        success: this.loadClassSpecification
-    });
 };
+
+function buildFactory(data, textStatus, jqXHR)
+{
+    var parsedData = jsyaml.safeLoad(data);
+    window.modelFactory = new ModelFactory(parsedData);
+}
+
+// Ask server for model definitions
+$.ajax({
+    url: CLASS_SPECIFICATION_URL,
+    success: buildFactory
+});
