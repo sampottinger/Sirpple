@@ -11,5 +11,8 @@ handlers:
 - url: /jslibs
   static_dir: jslibs
 
+- url: /static
+  static_dir: static
+
 - url: /.*
   script: main.app

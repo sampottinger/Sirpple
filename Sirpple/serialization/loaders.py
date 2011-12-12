@@ -4,7 +4,6 @@ Module containing classes for serialzation between JSON and Python classes defin
 from glob import glob
 import os
 import logging
-
 from backends import platform_manager
 from configparser import get_parser
 import model_spec
@@ -101,10 +100,10 @@ class FieldDefinitionFactory:
 
         # Determine if exposed
         if name.startswith("."):
-            exposed = True
+            exposed = False
             name = name[1:]
         else:
-            exposed = False
+            exposed = True
 
         return model_spec.FieldDefinition(name, field_type, exposed)
     

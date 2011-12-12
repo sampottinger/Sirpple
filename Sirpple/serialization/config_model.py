@@ -28,7 +28,8 @@ class ConfigModelFactory:
         Constructor for ConfigModelFactory that lazily loads class constants
         """
         self.reset()
-        default_class = backends.platform_manager.PlatformManager.get_instance().get_default_base_class()
+        platform = backends.platform_manager.PlatformManager.get_instance()
+        default_class = platform.get_default_base_class()
         ConfigModelFactory.DEFAULT_PARENT_CLASS_DEFINTION = model_spec.WrappedClassDefinition(default_class, [], None) # TODO: Parent field name?
     	ConfigModelFactory.DEFAULT_PARENT_CLASS_DESCRIPTOR = "DefaultBase"
     

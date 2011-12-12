@@ -3,6 +3,8 @@
 import config_model
 import backends
 
+# TODO: Make sure nobody else is using anything but ModelGraph to get at this
+
 class ModelGraph:
     """ 
     Graph of model schema structure as loaded from configuration files
@@ -30,6 +32,15 @@ class ModelGraph:
         """
         self.__factory = factory
         self.__field_relationship_cache = {}
+    
+    def get_class_definitions(self):
+        """
+        Returns a list of all of the class definitions currently in use in this graph
+
+        @return: List of model class definitions currently in use
+        @rtype: List of ClassDefinition
+        """
+        return self.__factory.get_class_definitions()
     
     def get_class_definition(self, class_name):
         """
@@ -81,7 +92,7 @@ class ModelGraph:
         @param target_model: The model instance to get the children for
         @type target_model: Any Model instance
         @return: Dictionary of immediate children of target_model by type
-        @rtype: Dictionary of ClassDefinitions to Model instances
+        @rtype: Dictionary of ClassDefinitions to list of Model instances
         """
         
         children = {}

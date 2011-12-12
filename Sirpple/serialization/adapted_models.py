@@ -10,12 +10,24 @@ except ImportError:
     db = None
     Query = None
 
-# TODO: Fully unified interface for adaptable models . . . see backends.DatabaseManager
+# TODO: Fully unified interface for adaptable models . . . see backends.platform_manger.PlatformManager
 
 class GAEAdaptedModel(db.Model):
     """
     Model that fills in database-specific gaps in GAE implementation
     """
+
+    @classmethod
+    def get_by_id(self, target_id):
+        """
+        Gets the instance of this model with the given id
+
+        @param target_id: The id of the instance desired
+        @type target_id: int
+        @return: Instance of this model with the given id
+        @rtype: GAEAdaptedModel instance or subclass instance
+        """
+        return db.Model.get_by_id(target_id)
 
     def get_children(self, child_class, **kwargs):
         """ 
@@ -36,7 +48,16 @@ class GAEAdaptedModel(db.Model):
         # TODO: Ensure only immediate children
 
         return query
-    
+
+    def get_parent(self):
+        """
+        Get this model's "parent model"
+
+        @return: This instance's parent as indicated in the database
+        @rtype: Model instance
+        """
+        return self.parent()
+
     def get_id(self):
         """
         Get model specific id global to the application

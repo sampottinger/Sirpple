@@ -2,7 +2,7 @@
 Classes containing structural information about models loaded from configuration files
 """
 
-from backends import platform_manager
+import backends
 import config_model
 import model_graph
 
@@ -86,7 +86,7 @@ class FieldDefinition:
         @return: True if this is built in or False otherwise
         @rtype: Boolean
         """
-        platform = platform_manager.PlatformManager.get_instance()
+        platform = backends.platform_manager.PlatformManager.get_instance()
         return self.get_name() in platform.get_built_in_field_names()
 
 class ClassDefinition:
@@ -126,8 +126,7 @@ class ClassDefinition:
         """
         Returns all of the fields / properties this class definition currently has
 
-        @keyword include_built_in: If true, include built in properties. Defaults to False
-                                    (may not be easily accessbile by getter)
+        @keyword include_built_in: If true, include built in properties. Defaults to False.
         @type include_built_in: Boolean
         @keyword include_inherited: Put inherited fields in the resulting dictionary.
                                     Defaults to True
@@ -167,8 +166,6 @@ class ClassDefinition:
 
         if self.__class == None:
 
-            platform = platform_manager.PlatformManager.get_instance()
-
             python_fields = {}
 
             for field_name in self.get_fields(include_inherited=False, include_built_in=False):
@@ -191,6 +188,16 @@ class ClassDefinition:
         @rtype: FieldDefinition
         """
         return self.__parent_field
+    
+    def get_parent_class_name(self):
+        """
+        Gets the name of the parent of this class
+
+        @return: The name of the parent of this class or Null if no
+                 parent
+        @rtype: String
+        """
+        return self.__parent_class_name
 
 class WrappedClassDefinition(ClassDefinition):
     """

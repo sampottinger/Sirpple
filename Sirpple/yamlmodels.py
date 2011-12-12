@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 
+import logging
 import os.path
 from serialization import loaders
 from glob import glob

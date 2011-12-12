@@ -1,9 +1,12 @@
 """
-Module with facades that abstract away the backend database / framework
+Module that abstracts away the backend database / framework
 """
 
 from uac import uac_checker
 from serialization import adapted_models
+from serialization import model_spec
+from rest import controller_generator
+import user_adapters
 
 try:
     from google.appengine.ext import db
@@ -45,11 +48,8 @@ class PlatformManager:
         @return: PropertyDefinitionFactory implementor
         @rtype: Subclass of PropertyDefinitionFactory
         """
-        # TODO: This is messy
-        import property_definitions
-
         # TODO: Switch on this, scoping is important
-        return property_definitions.GAEPropertyDefinitionFactory.get_instance()
+        return GAEPropertyDefinitionFactory.get_instance()
 
     def get_property_class(self, name, params):
         """
@@ -104,23 +104,146 @@ class PlatformManager:
         # TODO: Switch on backend
         return uac_checker.GAEUACChecker.get_instance()
     
-    def get_parent_field_name(self):
+    def get_adapted_user(self, target):
         """
-        Gets the db-specific field name containing information about the parent of an instance
+        Wraps the given db-specific user in an adapter
 
-        @return: The name of the field that contains parent information in this
-                 database's models
-        @rtype: String
+        @param target: DB-specific user construct
+        @type target: DB-specific user instance
+        @return: Adapter that conforms to user_adapter.UserAdapter
+        @rtype: UserAdapater subclass instance
         """
         # TODO: Switch on backend
-        return "parent"
+        return user_adapters.GAEUserAdapter(target)
+    
+    def get_adapated_user_class(self):
+        """
+        Determines the db-specific user adapter currently in use
+
+        @return: DB-specific user adapter
+        @rtype: UserAdapater subclass (not instance)
+        """
+        # TODO: Switch on backend
+        return user_adapters.GAEUserAdapater
     
     def get_built_in_field_names(self):
         """
-        Determines all of the fields that are provided by the specific backend in use
+        Gets a list of the db-specific field names that are built-in to the models clas
 
-        @return: List of names of fields that are provided by the current framework
-        @rtype: List of Strings
+        @return: List of built in field names
+        @rtype: List of String
         """
-        # TODO: Switch on backend
         return ["parent"]
+    
+    def get_parent_field_name(self):
+        """
+        Returns the db-specific field used to specify a model's parent
+
+        @return: Name of the field that encodes the parent pointer / reference
+        @rtype: String
+        """
+        # TODO: This method should be phased out
+        return "parent"
+    
+    def get_controller_generator(self):
+        """
+        Gets the db-specific controller generator used to build controllers for REST
+
+        @return: Generator for a REST API
+        @rtype: ControllerGenerator subclass
+        """
+        # TODO: This method should switch on db
+        return controller_generator.GAEControllerGenerator.get_instance()
+
+class PropertyDefinitionFactory:
+    """
+    Factory that produces database specific property definitions
+
+    @note: Abstract class, must use implementor
+    """
+
+    def __init__(self):
+        pass
+    
+    def get_definition(self, config_name, db_class_name, parameters):
+        """
+        Gets the appropriate definition for the given type of property
+
+        @param config_name: The name of the property in the configuration file
+        @type config_name: String
+        @param parameters: The parameters used to initalize this property
+        @type parameters: Dictionary
+        @param db_class_name: The property class in the database
+        @type db_class_name: Class
+        """
+        raise NotImplementedError("Must use implementor of this PropertyDefintionFactory")
+
+class GAEPropertyDefinitionFactory(PropertyDefinitionFactory):
+    """ Google App Engine specific property definition factory """
+
+    __instance = None
+
+    @classmethod
+    def get_instance(self):
+        """
+        Get a shared instance of this GAEPropertyDefinitionFactory singleton
+
+        @return: Shared GAEPropertyDefinitionFactory instance
+        @rtype: GAEPropertyDefinitionFactory
+        """
+        if GAEPropertyDefinitionFactory.__instance == None:
+            GAEPropertyDefinitionFactory.__instance = GAEPropertyDefinitionFactory()
+        
+        return GAEPropertyDefinitionFactory.__instance
+
+    def __init__(self):
+        PropertyDefinitionFactory.__init__(self)
+    
+    def get_definition(self, config_name, db_class_name, parameters):
+        if db_class_name == "ReferenceProperty":
+            if config_name == "parent":
+                return GAEParentPropertyDefinition(config_name, db_class_name, parameters)
+            else:
+                return GAEReferencePropertyDefinition(config_name, db_class_name, parameters)
+        else:
+            return SimplePropertyDefinition(config_name, db_class_name, parameters)
+
+class SimplePropertyDefinition(model_spec.PropertyDefinition):
+    """
+    Definition of a property as a database model that does not require any special parameters
+    """
+
+    def get_property(self, field_name):
+        return PlatformManager.get_instance().get_property_class(self.db_class_name, self.parameters)
+
+class EmptyReferenePropertyDefinition(model_spec.PropertyDefinition):
+    """
+    Reference property definitions that should not actually be properties (built-ins)
+    """
+
+    def get_property(self, field_name):
+        return None
+    
+    def is_built_in(self, field_name):
+        return True
+
+class GAEReferencePropertyDefinition(model_spec.PropertyDefinition):
+    """
+    Reference property definitions that require a collection name
+    """
+
+    def get_property(self, field_name):
+        params = self.parameters
+        params["collection_name"] = field_name + "_collection"
+        return PlatformManager.get_instance().get_property_class(self.db_class_name, self.parameters)
+    
+    def is_reference(self):
+        return True
+
+class GAEParentPropertyDefinition(GAEReferencePropertyDefinition):
+    """
+    Reference property definitions for parent relationships
+    """
+
+    def is_built_in(self):
+        return True
