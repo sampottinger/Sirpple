@@ -25,15 +25,16 @@ class GAEController(webapp2.RequestHandler):
     __instance = None
 
     def __init__(self, target_class, *args, **kwargs):
-        webapp2.RequestHandler.__init__(self, *args, **kwargs)
-        
         self.__target_class_name = target_class.get_name()   
         
         graph = model_graph.ModelGraph.get_current_graph()
 
         self.__target_class_defn = target_class
         self.__uac_checker = backends.platform_manager.PlatformManager.get_instance().get_uac_checker()
-
+    
+    def __call__(self,*args, **kwargs):
+        webapp2.RequestHandler.__init__(self, *args, **kwargs)
+    
     def write_serialized_response(self, target):
         """
         Write out target as a serialized object to response
