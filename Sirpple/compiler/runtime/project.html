@@ -1,0 +1,23 @@
+<!DOCTYPE HTML>
+
+<html>
+<head>
+    {# TODO: set this dynamically #}
+    <title>project</title>
+    <script type="text/javascript" src="/jslibs/limejs/closure/closure/goog/base.js"></script>
+    {# TODO: set these dynamically #}
+    <script type="text/javascript">
+        goog.require('lime.Circle');
+        goog.require('lime.Scene');
+        goog.require('lime.Layer');
+        goog.require('lime.Circle');
+        goog.require('lime.Sprite');
+        goog.require('lime.Label');
+    </script>
+    <script type="text/javascript" src="{% autoescape off %}{{project_js_url}}{% endautoescape %}"></script>
+</head>
+
+{# TODO: set this dynamically #}
+<body onload="project.start()"></body>
+
+</html>
