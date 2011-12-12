@@ -9,6 +9,9 @@ $(document).ready(function() {
 	$( ".accordion" ).accordion({"autoHeight": false,
 			"navigation": true});
 
+  //set up drag and drop
+  $(".draggable").draggable( { revert:true, helper:'clone', appendTo: 'body' } )
+
   var canvas = document.getElementById('canvas');
   context = canvas.getContext('2d');
   context.fillStyle = "rgb(0,0,255)";

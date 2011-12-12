@@ -4,13 +4,19 @@ html {width:100%; height:100%; }
 
 body { width:1000px; height:650px; margin-left:auto; margin-right:auto; font-size:0.75em;}
 
+img {width: 100px; height: 100px; }
+
 .left { height:650px !important; width:250px; float:left }
 .right { height:650px !important; width:250px; float:right}
-.pane {height:300px; overflow:auto;}
+.middle { height:650px width:500px; float:left }
+.pane {padding: 5px; height:450px; overflow:auto;}
 .accordion { height:90% }
+.accordion .ui-accordion-content { padding:5px; }
 
-#canvas { height:650px; width:500px; float:left }
+.leftTable { width:100%; text-align:center; }
 
-input { width:172px; }
+#canvas { height:600px; width:500px; float:left }
+
+input { width:100%; }
 
 h4 { background-color:#CCCCCC; font-size:1em; }
