@@ -55,7 +55,7 @@ class RenderVisitor(Visitor):
         game_obj.constructor = game_obj.init
         game_obj.methods = game_obj.game_object_methods
         
-        parent_class = 'lime.Circle' # default
+        parent_class = 'lime.Sprite' # default
         if game_obj.parent_class:
             parent_class = game_obj.parent_class.name
         
