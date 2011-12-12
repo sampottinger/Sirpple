@@ -55,6 +55,19 @@ def children():
     return model_graph.ModelGraph.get_current_graph().get_children(project)
     #print 'Children test passed'
 
+def tree():
+    
+    setup_db()
+    
+    factory = ConfigModelFactory.get_instance()
+    project_model = factory.get_model('Project')
+    
+    projects = project_model.all()
+    project = projects.get()
+    
+    tree = ast.NodeFactory.get_instance().create_tree(project)
+    return tree
+
 def compiler():
     
     setup_db()
