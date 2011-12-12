@@ -1,10 +1,11 @@
 // jQuery initialization logic
 
 var context;
-var count = 0;
-var img;
-var postop;
-var posleft;
+var counter = 0;
+var counts = new Array();
+var images = new Array();
+var postop = new Array();
+var posleft = new Array();
 
 $(document).ready(function() {
   img = new Image();
@@ -18,10 +19,12 @@ $(document).ready(function() {
 
   $(".droppable").droppable({
       drop: function(event, ui) {
-        img = new Image();
-        postop = ui.offset.top - $(this).offset().top;
-        posleft = ui.offset.left - $(this).offset().left;
-        img.src = ui.draggable.attr('src');
+        images[counter] = new Image();
+        postop[counter] = ui.offset.top - $(this).offset().top;
+       posleft[counter] = ui.offset.left - $(this).offset().left;
+        images[counter].src = ui.draggable.attr('src');
+        counts[counter] = 0;
+        counter++;
       }})
 
   var canvas = document.getElementById('canvas');
@@ -35,13 +38,16 @@ $(document).ready(function() {
 
 function doRotate() {
   context.clearRect(0,0,500,650)
-  context.save();
-    context.translate(posleft,postop);
+  for(i = 0; i < counter; i++)
+  {
     context.save();
-      context.translate(20*Math.cos(count/20), 20*Math.sin(count/20));
-      context.drawImage(img,0,0);
+      context.translate(posleft[i],postop[i]);
+      context.save();
+        context.translate(20*Math.cos(counts[i]/20), 20*Math.sin(counts[i]/20));
+        context.drawImage(images[i],0,0);
+      context.restore();
     context.restore();
-  context.restore();
+    counts[i]++;
+  }
   setTimeout("doRotate()", 16);
-  count++;
 }
