@@ -19,11 +19,18 @@ var modelgateway
 		 * Creates a new model gateway around the given model class name
 		 * @param {String} fullName The full name of the model class this
 		 *                          gateway will provide access to,
-		 *                          including  
+		 *                          including 
+		 * @param {String} parentName The name of the parent class of this class 
 		**/
-		constructor: function(fullName)
+		constructor: function(fullName, parentName)
 		{
+			this.parentName = parentName
 			this.fullName = fullName;
+			parts = this.fullName.split(".")
+			if(parts.length == 1)
+				this.modelName = parts[0]
+			else
+				this.modelName = parts[1]
 		},
 
 		/**
@@ -36,7 +43,8 @@ var modelgateway
 		**/
 		getAll: function(parentID, callback)
 		{
-			
+			var url = sprintf("/%s/%d/%ss", this.parentName, parentID, this.modelName);
+			$.getJSON(url, callback);
 		},
 
 		/**
@@ -47,7 +55,8 @@ var modelgateway
 		**/
 		get: function(targetID, callback)
 		{
-			
+			var url = sprintf("/%s/%d", this.modelName, targetID);
+			$.getJSON(url, callback);
 		},
 
 		/**
