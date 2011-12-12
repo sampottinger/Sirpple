@@ -13,6 +13,7 @@ def indent(string):
 class RenderVisitor(Visitor):
     
     def visit_Project(self, project):
+        
         worlds = ''
         for world in project.worlds:
             worlds += self.visit(world)
@@ -21,10 +22,25 @@ class RenderVisitor(Visitor):
         for game_obj in project.game_objects:
             game_objs += self.visit(game_obj)
         
+        events = ''
+        setup = ''
+        if project.events:
+            events = 'var eventManager = new goog.events.EventTarget();\n'
+        
+        for event in project.events:
+            events += 'var %sEvent = "%s";\n'%(event.name,event.name)
+            if event.name == 'onStep':
+                events += 'var onStep_leftover = 0;\n'
+                events += template.render('compiler/runtime/onstep.js', {'target':'eventManager'})
+                setup += 'lime.scheduleManager.scheduleWithDelay(onStep,null,30);'
+                pass
+        
         project_context = {}
+        project_context['events'] = events
         project_context['worlds'] = worlds
         project_context['game_objects'] = game_objs
         project_context['starting_world'] = project.starting_world.name
+        project_context['setup'] = setup
         project_js = template.render('compiler/runtime/project.js', project_context)
         
         return project_js
