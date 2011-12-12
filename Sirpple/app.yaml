@@ -12,8 +12,5 @@ handlers:
 - url: /static
   static_dir: static
 
-- url: /configuration
-  static_dir: configuration
-
 - url: /.*
   script: main.app
