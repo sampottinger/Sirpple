@@ -2,15 +2,27 @@
 
 var context;
 var count = 0;
+var img;
+var postop;
+var posleft;
 
 $(document).ready(function() {
+  img = new Image();
 
   //set up the accordion
 	$( ".accordion" ).accordion({"autoHeight": false,
 			"navigation": true});
 
   //set up drag and drop
-  $(".draggable").draggable( { revert:true, helper:'clone', appendTo: 'body' } )
+  $(".draggable").draggable( { revert:'invalid', helper:'clone', appendTo: 'body' } )
+
+  $(".droppable").droppable({
+      drop: function(event, ui) {
+        img = new Image();
+        postop = ui.offset.top - $(this).offset().top;
+        posleft = ui.offset.left - $(this).offset().left;
+        img.src = ui.draggable.attr('src');
+      }})
 
   var canvas = document.getElementById('canvas');
   context = canvas.getContext('2d');
@@ -24,10 +36,10 @@ $(document).ready(function() {
 function doRotate() {
   context.clearRect(0,0,500,650)
   context.save();
-    context.translate(250,250);
+    context.translate(posleft,postop);
     context.save();
-      context.rotate(count / 10);
-      context.fillRect(-10,-10,10,10);
+      context.translate(20*Math.cos(count/20), 20*Math.sin(count/20));
+      context.drawImage(img,0,0);
     context.restore();
   context.restore();
   setTimeout("doRotate()", 16);
