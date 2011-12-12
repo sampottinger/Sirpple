@@ -17,12 +17,68 @@ var modelgateway
 		
 		/**
 		 * Creates a new model gateway around the given model class name
-		 * @param {String} modelName The name of the model class this
-		 *                           gateway will provide access to
+		 * @param {String} fullName The full name of the model class this
+		 *                          gateway will provide access to,
+		 *                          including  
 		**/
-		constructor: function(modelName)
+		constructor: function(fullName)
 		{
-			this.modelName = modelName;
+			this.fullName = fullName;
+		},
+
+		/**
+		 * Gets all of the instances of this gateway's model that have
+		 * a parent with the provided ID
+		 * @param {Integer} parentID The id of the parent whose children
+		 *                           are desired
+		 * @param {Function} callback The function to call after finishing
+		 * @returns {List} List of models retrieved from the server
+		**/
+		getAll: function(parentID, callback)
+		{
+			
+		},
+
+		/**
+		 * Gets an instance of this gateway's model by id
+		 * @param {Integer} parentID The id of the instance desired
+		 * @param {Function} callback THe function to call after finishing
+		 * @param {Object} instance retrieved from server
+		**/
+		get: function(targetID, callback)
+		{
+			
+		},
+
+		/**
+		 * Update an existing model
+		 * @param {Object} target The object to update
+		 * @param {Function} callback The function to call after finishing
+		**/
+		put: function(target, callback)
+		{
+			
+		},
+
+		/**
+		 * Creates a new instance of this gateway's model
+		 * @param {Integer} parentID The id of the parent for this new model
+		 * @param {Object} target The object to upload
+		 * @param {Function} callback The function to call after finishing
+		**/
+		post: function(parentID, target, callback)
+		{
+			
+		},
+
+		/**
+		 * Deletes an instance of this gateway's model class
+		 * @param {Object} target The object to delete from the server
+		 * @param {Function} callback The function to call after finishing
+		**/
+		del: function(target, callback)
+		{
+			
 		}
 
 	})
