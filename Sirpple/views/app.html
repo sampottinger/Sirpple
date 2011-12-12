@@ -12,8 +12,7 @@
 	<link type="text/css" rel="stylesheet" href="/static/css/sirpple-css.css">
 </head>
 <html>
-<body>
-<!--Need to put in middle portion!-->
+<body id="everything">
   <div class="left"> 
     <div class="accordion">
       <h3 class="current"><a href="#">Worlds</a></h3>
@@ -31,15 +30,19 @@
       <h3><a href="#">Project</a></h3>
       <div class="pane">{* project.html *}</div>	
     </div>	
-    <div>
-      <h2>Project</h2>
-      <div class="horizbuttonbar">
-        
-      </div>
-    </div>
   </div>
   
-  <canvas id="canvas" width="500" height="650"> Your browser does not support the canvas element! Oh noes! </canvas>
+  <div class="middle">
+    <canvas id="canvas" class="droppable" width="500" height="600"> Your browser does not support the canvas element! Oh noes! </canvas>
+      <table class="horizbuttonbar">
+        <tr>
+          <td>Start</td>
+          <td>Download</td>
+          <td>New</td>
+          <td>Open</td>
+        </tr>
+      </table>
+  </div>
 	
   <div class="right"> 
     <div class="accordion">
