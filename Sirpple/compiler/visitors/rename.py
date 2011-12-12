@@ -17,14 +17,18 @@ class RenameVisitor(Visitor):
         return project
     
     def visit_World(self, world):
-        world.name = 'World_'+clean_name(world.name)
+        # rename for uniqueness
+#        world.name = 'World_'+clean_name(world.name)
+        world.name = clean_name(world.name)
         for method in world.world_methods:
             self.visit(method)
         world.constructor.name = world.name
         return world
     
     def visit_GameObject(self, game_obj):
-        game_obj.name = 'GameObject_'+clean_name(world.name)
+        # rename for uniqueness
+#        game_obj.name = 'GameObject_'+clean_name(world.name)
+        game_obj.name = clean_name(game_obj.name)
         for method in game_obj.game_object_methods:
             self.visit(method)
         game_obj.init.name = game_obj.name
