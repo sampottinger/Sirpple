@@ -32,6 +32,10 @@ class TestDriver(object):
             print >>response_out, exc
             print >>response_out, 'Test module', module_name, 'not found'
             return
+        except SyntaxError:
+            exc = traceback.format_exc()
+            print >>response_out, exc
+            return
         
         if not test_name:
             print >>response_out, 'No test specified'
