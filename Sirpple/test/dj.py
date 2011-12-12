@@ -57,6 +57,24 @@ def populate_db():
     game_obj.init = gcons
     game_obj.put()
     
+    g_onntsep = GameObjectMethod(parent=game_obj)
+    g_onntsep.name = 'Game object 1 onStep'
+    g_onntsep.signature='{}'
+    g_onntsep.body_type='raw'
+    g_onntsep.body="""
+        var position = this.getPosition();
+        this.setPosition(position.x+1,position.y);
+        """
+    g_onntsep.put()
+    
+    onstep_event = Event(parent=proj)
+    onstep_event.name = 'onStep'
+    onstep_event.put()
+    
+    g_onntsep_subsc = GameObjectSubscription(parent=g_onntsep)
+    g_onntsep_subsc.event = onstep_event
+    g_onntsep_subsc.put()
+    
 
 def setup_db():
     factory = ConfigModelFactory.get_instance()
