@@ -7,17 +7,17 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
 # cd to proj root
 cd $DIR/..
-if [ ! -f Sirpple/jslibs/limejs/.git ]; then
+if [ ! -f Sirpple/static/jslibs/limejs/.git ]; then
     git submodule update --init
 else
-    cd Sirpple/jslibs/limejs
+    cd Sirpple/static/jslibs/limejs
     git reset --hard HEAD
     cd ../../..
     git submodule update --rebase
 fi
 
 #cd to limejs
-cd Sirpple/jslibs/limejs
+cd Sirpple/static/jslibs/limejs
 git checkout master
 
 if [ ! -f closure ]; then
