@@ -15,6 +15,7 @@ Attribute:
 GameObject:
     name: String
     parent_class: GameObject
+    init: GameObjectMethod
     .parent: Project
     type: Integer
 
