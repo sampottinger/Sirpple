@@ -27,7 +27,10 @@ class GAEAdaptedModel(db.Model):
         @return: Instance of this model with the given id
         @rtype: GAEAdaptedModel instance or subclass instance
         """
-        return db.Model.get_by_id(self, target_id)
+        table = dict([(p.get_id(),p) for p in self.all()])
+        
+        model = table[target_id]
+        return model
 
     def get_children(self, child_class, **kwargs):
         """ 
