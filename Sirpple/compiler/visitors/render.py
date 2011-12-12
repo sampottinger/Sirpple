@@ -30,26 +30,46 @@ class RenderVisitor(Visitor):
         return project_js
     
     def visit_World(self, world):
+        world.methods = world.world_methods
+            
+        return self.render_js_class(world, 'lime.Layer')
+    
+    def visit_GameObject(self, game_obj):
+        
+        game_obj.constructor = game_obj.init
+        game_obj.methods = game_obj.game_object_methods
+        
+        parent_class = 'lime.Circle' # default
+        if game_obj.parent_class:
+            parent_class = game_obj.parent_class.name
+        
+        return self.render_js_class(game_obj, parent_class)
+    
+    def render_js_class(self, obj, parent_class):
         body = ''
-        for method in world.world_methods:
+        for method in obj.methods:
             method.is_constructor = method == obj.constructor
             
             method_txt = self.visit(method)
             if method.is_constructor:
                 constructor_context={}
                 constructor_context['method'] = method_txt
-                constructor_context['child'] = world.name
-                constructor_context['parent'] = 'lime.Scene'
+                constructor_context['child'] = obj.name
+                constructor_context['parent'] = parent_class
                 
                 body += template.render('compiler/runtime/constructor.js', constructor_context)
             else:
-                body += world.name +'.'+method_txt
+                body += obj.name +'.'+method_txt
+            
         return body
     
-    def visit_WorldMethod(self, method):
-        return self.visit_Method(method)
+    def visit_WorldMethod(self, method,**kwargs):
+        return self.visit_Method(method,**kwargs)
     
-    def visit_Method(self, method):
+    def visit_GameObjectMethod(self, method,**kwargs):
+        return self.visit_Method(method,**kwargs)
+    
+    def visit_Method(self, method,):
         
         signature_dict = pyyaml.load(method.signature)
         args = ', '.join(map(str, signature_dict.keys()))
