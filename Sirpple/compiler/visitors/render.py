@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 from . import Visitor
+from ..ast import Node
 
 import pyyaml
 
@@ -31,9 +32,10 @@ class RenderVisitor(Visitor):
     def visit_World(self, world):
         body = ''
         for method in world.world_methods:
+            method.is_constructor = method == obj.constructor
+            
             method_txt = self.visit(method)
-            if method == world.constructor:
-                
+            if method.is_constructor:
                 constructor_context={}
                 constructor_context['method'] = method_txt
                 constructor_context['child'] = world.name
@@ -57,7 +59,10 @@ class RenderVisitor(Visitor):
         method_context['args'] = args
         
         if method.body_type == 'raw':
-            method_context['body'] = indent(method.body.strip())
+            body = method.body.strip()
+            if method.is_constructor:
+                body = 'goog.base(this)\n' + body
+            method_context['body'] = indent(body)
         
         return template.render('compiler/runtime/method.js', method_context)
     
