@@ -13,7 +13,7 @@ class GAEController(webapp2.RequestHandler):
     DEFAULT_SERIALIZER = "complex-JSON"
     PROJECT_MODEL_NAME = "Project"
     PROJECT_ID_PARAM = "project_id"
-    INSTANCE_ID_PARAM = "id"
+    INSTANCE_ID_PARAM = "instid"
     PARENT_PARAM = "parent"
     ACTION_PARAM = "action"
     DATA_PARAM = "payload"
