@@ -9,7 +9,7 @@ img {width: 100px; height: 100px; }
 .left { height:650px !important; width:250px; float:left }
 .right { height:650px !important; width:250px; float:right}
 .middle { height:650px width:500px; float:left }
-.pane {padding: 5px; height:450px; overflow:auto;}
+.pane {padding: 5px; height:482px; overflow:auto;}
 .accordion { height:90% }
 .accordion .ui-accordion-content { padding:5px; }
 
@@ -18,5 +18,8 @@ img {width: 100px; height: 100px; }
 #canvas { height:600px; width:500px; float:left }
 
 input { width:100%; }
+
+ul {list-style-type:none; padding: 5px; }
+li { padding:4px; border-radius:5px; margin:5px; color:#FFFFFF; background-color:#87C04C }
 
 h4 { background-color:#CCCCCC; font-size:1em; }
