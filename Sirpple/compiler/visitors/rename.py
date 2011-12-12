@@ -23,7 +23,17 @@ class RenameVisitor(Visitor):
         world.constructor.name = world.name
         return world
     
+    def visit_GameObject(self, game_obj):
+        game_obj.name = 'GameObject_'+clean_name(world.name)
+        for method in game_obj.game_object_methods:
+            self.visit(method)
+        game_obj.init.name = game_obj.name
+        return game_obj
+    
     def visit_WorldMethod(self, method):
+        return self.visit_Method(method)
+        
+    def visit_GameObjectMethod(self, method):
         return self.visit_Method(method)
     
     def visit_Method(self, method):
