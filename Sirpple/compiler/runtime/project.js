@@ -9,6 +9,7 @@ goog.require('lime.Scene');
 goog.require('lime.Layer');
 goog.require('lime.Circle');
 goog.require('lime.Label');
+goog.require('lime.Renderer');
 goog.require('lime.animation.Spawn');
 goog.require('lime.animation.FadeTo');
 goog.require('lime.animation.ScaleTo');
@@ -31,6 +32,7 @@ project.start = function(){
     var world = new {{starting_world}}();
 
     scene.appendChild(world);
+    scene.setRenderer(lime.Renderer.CANVAS);
     
     {% autoescape off %}{{setup}}{% endautoescape %}
     
