@@ -76,11 +76,12 @@ class GAEControllerGenerator(ControllerGenerator):
 
         # Get names
         name = class_definition.get_name().lower()
-        parent_name = class_definition.get_parent_class_name()
-
-        # Build index controller
-        index_controller = gae_controllers.GAEIndexController(class_definition)
-        handlers.append(("\/" + parent_name + "\/(\d+)\/" + name + "s", index_controller))
+        parent_name = class_definition.get_db_parent_name()
+        
+        if parent_name:
+            # Build index controller
+            index_controller = gae_controllers.GAEIndexController(class_definition)
+            handlers.append(("\/" + parent_name.lower() + "\/(\d+)\/" + name + "s", index_controller))
 
         # Build individual controller
         individual_controller = gae_controllers.GAEIndividualController(class_definition)

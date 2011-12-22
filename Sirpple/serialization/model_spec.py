@@ -198,6 +198,16 @@ class ClassDefinition:
         @rtype: String
         """
         return self.__parent_class_name
+    
+    def get_db_parent_name(self):
+        """
+        Gets the name of the grouping parent model of this class
+
+        @return: The name of the databse parent of this class or Null
+                 if noparent
+        @rtype: String
+        """
+        return self.__parent_field and self.__parent_field.get_field_type_name() 
 
 class WrappedClassDefinition(ClassDefinition):
     """
