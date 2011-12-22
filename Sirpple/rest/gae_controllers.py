@@ -161,49 +161,37 @@ class GAEIndividualController(GAEController):
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Went to modify " + servicing_class_name + " without specifying action")
             return
+        
+        # Get the instance in question
+        target = self.get_target_instance_by_id()
+        if target == None:
+            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
+            logging.error("Asked for " + servicing_class_name + " but no ID was provided")
+            return
 
+        # Check that the user is authorized
+        if not self.has_access(target):
+            self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
+            logging.error(self.get_current_username() + " attempted unauthorized access to " + target_class_name)
+            return
+        
         # Route accordingly
         if action == GAEIndividualController.DELETE_ACTION:
-            self.__do_delete()
+            self.__do_delete(target)
         elif action == GAEIndividualController.PUT_ACTION:
-            self.__do_put()
+            self.__do_put(target)
         else:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Went to modify " + servicing_class_name + " but given invalid action " + action)
             return
     
-    def __do_delete(self):
-        
-        target = self.get_target_instance_by_id()
-        if target == None:
-            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
-            logging.error("Asked for " + servicing_class_name + " but no ID was provided")
-            return
-
-        # Check that the user is authorized
-        if not self.has_access(target):
-            self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
-            logging.error(self.get_current_username() + " attempted unauthorized access to " + target_class_name)
-            return
+    def __do_delete(self, target):
         
         target.delete()
     
-    def __do_put(self):
+    def __do_put(self, target):
 
         arguments = self.arguments()
-        
-        target = self.get_target_instance_by_id()
-        if target == None:
-            self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
-            logging.error("Asked for " + servicing_class_name + " but no ID was provided")
-            return
-
-        # Check that the user is authorized
-        if not self.has_access(target):
-            self.error(GAEController.UNAUTHORIZED) # TODO: Should conform to standards
-            logging.error(self.get_current_username() + " attempted unauthorized access to " + target_class_name)
-            return
-        
         # Get the payload
         if not GAEController.DATA_PARAM in arguments:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
