@@ -109,12 +109,12 @@ class GAEIndexController(GAEController):
         parent_class = graph.get_class_definition(parent_class_name).get_class()
 
         # Get the parent from the request
+        parent_id = int(parent_id_str)
+        parent = parent_class.get_by_id(parent_id)
         if parent == None:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Asked for index of " + target_class_name + " without specifying parent")
             return
-        parent_id = int(parent_id_str)
-        parent = parent_class.get_by_id(parent_id)
         
         # Check user access
         if not self.has_access(parent):
