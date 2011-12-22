@@ -78,25 +78,29 @@ class GAEController(webapp2.RequestHandler):
         """
         return self.__target_class_defn
     
-    def get_target_instance_by_id(self):
+    def get_target_instance_by_id(self, target_id_str = None):
         """
         Gets the instance with the id passed as a parameter in this request
-
+        
+        @param target_id_str: The database id of the target
+        @type target_id_str: string
+        
         @return: Target instance or None if id not specified
         @rtype: Instance of the class this handler services
-        """ 
-        if not GAEController.INSTANCE_ID_PARAM in self.arguments():
+        """
+        
+        if not target_id_str:
             return None
-
-        target_id = int(self.get(GAEController.INSTANCE_ID_PARAM))
-
+        
+        target_id = int(target_id_str)
+        
         target_class = self.__target_class_defn.get_class()
         return target_class.get_by_id(target_id)
 
 class GAEIndexController(GAEController):
     """ Google App Engine handler for listing objects """
     
-    def get(self):
+    def get(self, parent_id_str):
         graph = model_graph.ModelGraph.get_current_graph()
         target_class_defn = self.get_target_class_definition()
         target_class_name = target_class_defn.get_name()
@@ -105,7 +109,6 @@ class GAEIndexController(GAEController):
         parent_class = graph.get_class_definition(parent_class_name).get_class()
 
         # Get the parent from the request
-        parent_id_str = self.get(GAEController.PARENT_PARAM)
         if parent == None:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Asked for index of " + target_class_name + " without specifying parent")
@@ -133,11 +136,11 @@ class GAEIndividualController(GAEController):
     DELETE_ACTION = "delete"
     PUT_ACTION = "put"
 
-    def get(self):
+    def get(self, target_id_str):
         servicing_class_name = self.get_class_definition().get_name()
 
         # Get the instance in question
-        target = self.get_target_instance_by_id()
+        target = self.get_target_instance_by_id(target_id_str)
         if target == None:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Asked for " + servicing_class_name + " but no ID was provided")
@@ -152,7 +155,7 @@ class GAEIndividualController(GAEController):
         # Serialize and send back
         self.write_serialized_response(target)
 
-    def post(self):
+    def post(self, target_id_str):
         servicing_class_name = self.get_class_definition().get_name()
 
         # Determine desired action
@@ -163,7 +166,7 @@ class GAEIndividualController(GAEController):
             return
         
         # Get the instance in question
-        target = self.get_target_instance_by_id()
+        target = self.get_target_instance_by_id(target_id_str)
         if target == None:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Asked for " + servicing_class_name + " but no ID was provided")
@@ -214,7 +217,7 @@ class GAEIndividualController(GAEController):
 class GAECreateController(GAEController):
     """ Handler for a POST request on a resource """
 
-    def post(self):
+    def post(self, project_id_str):
         """ Creates a new resource on the server """
         target_class_name = self.get_target_class_definition().get_name()
 
