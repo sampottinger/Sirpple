@@ -159,7 +159,7 @@ class GAEIndividualController(GAEController):
         servicing_class_name = self.get_class_definition().get_name()
 
         # Determine desired action
-        action = self.get(GAEController.ACTION_PARAM)
+        action = self.request.get(GAEController.ACTION_PARAM)
         if action == None:
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Went to modify " + servicing_class_name + " without specifying action")
@@ -200,7 +200,7 @@ class GAEIndividualController(GAEController):
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Went to modify " + servicing_class_name + " but no payload provided")
             return
-        payload = self.get(GAEController.DATA_PARAM)
+        payload = self.request.get(GAEController.DATA_PARAM)
         
         # Load it into target
         dto_builder = dto.DTOBuilder.get_instance()
@@ -226,7 +226,7 @@ class GAECreateController(GAEController):
             self.error(GAEController.NOT_ACCEPTABLE) # TODO: Should provide acc. characteristics
             logging.error("Went to build " + servicing_class_name + " but no payload provided")
             return
-        payload = self.get(GAEController.DATA_PARAM)
+        payload = self.request.get(GAEController.DATA_PARAM)
 
         # Decode payload
         # TODO: not a fan of straight get_parser
