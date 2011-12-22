@@ -24,7 +24,7 @@ class GAEController(webapp2.RequestHandler):
 
     __instance = None
 
-    def __init__(self, target_class, *args, **kwargs):
+    def __init__(self, target_class):
         self.__target_class_name = target_class.get_name()   
         
         graph = model_graph.ModelGraph.get_current_graph()
@@ -32,8 +32,9 @@ class GAEController(webapp2.RequestHandler):
         self.__target_class_defn = target_class
         self.__uac_checker = backends.platform_manager.PlatformManager.get_instance().get_uac_checker()
     
-    def __call__(self,*args, **kwargs):
-        webapp2.RequestHandler.__init__(self, *args, **kwargs)
+    def __call__(self, request, *args, **kwargs):
+        self.initialize(request, request.response)
+        return self.dispatch()
     
     def write_serialized_response(self, target):
         """
@@ -94,9 +95,6 @@ class GAEController(webapp2.RequestHandler):
 
 class GAEIndexController(GAEController):
     """ Google App Engine handler for listing objects """
-
-    def __init__(self, target_class, *args, **kwargs):
-        GAEController.__init__(self,target_class, *args, **kwargs)
     
     def get(self):
         graph = model_graph.ModelGraph.get_current_graph()
